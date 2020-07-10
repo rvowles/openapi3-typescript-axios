@@ -12,3 +12,94 @@ It needs to:
 - support oneOf's and discriminators (lower priority)
 
 I have tested it on taffy for code gen only and it seems happy except for the NSW gas because of the discriminator.
+
+Party for example is created like this:
+
+[source,typescript]
+----
+export class Party {
+  /**
+  *
+  * @type {PartyType}
+  * @memberof Party
+  */
+  public partyType: PartyType;
+  /**
+  *
+  * @type {string}
+  * @memberof Party
+  */
+  public givenName: string;
+  /**
+  *
+  * @type {string}
+  * @memberof Party
+  */
+  public additionalName?: string;
+  /**
+  *
+  * @type {string}
+  * @memberof Party
+  */
+  public familyName: string;
+  /**
+  *
+  * @type {string}
+  * @memberof Party
+  */
+  public telephone?: string;
+  /**
+  *
+  * @type {string}
+  * @memberof Party
+  */
+  public email: string;
+  /**
+  *
+  * @type {Date}
+  * @memberof Party
+  */
+  public birthDate?: Date;
+
+  constructor(init?: Partial<Party>) {
+    Object.assign(this, init);
+  }
+}
+----
+
+The partial is used to allow people to create the class as they have been.
+
+for this is also generates a hidden serializer/deserializer. This is outside because toJson() has semantics in Javascript:
+
+[source,typescript]
+----
+class PartyTypeTransformer {
+      static toJson(val: Party): string {
+        return JSON.stringify({
+          'partyType': ObjectSerializer.serialize(val.partyType, 'PartyType'),
+          'givenName': val.givenName?.toString(),
+          'additionalName': val.additionalName?.toString(),
+          'familyName': val.familyName?.toString(),
+          'telephone': val.telephone?.toString(),
+          'email': ObjectSerializer.serialize(val.email, 'email'),
+          'birthDate': ObjectSerializer.serialize(val.birthDate, 'date'),
+        });
+    }
+
+      // expect this to be a decoded value
+      static fromJson(val: any): Party {
+        return new Party({
+          partyType: ObjectSerializer.deserialize(val['partyType'], 'PartyType'),
+          givenName: val['givenName']?.toString(),
+          additionalName: val['additionalName']?.toString(),
+          familyName: val['familyName']?.toString(),
+          telephone: val['telephone']?.toString(),
+          email: ObjectSerializer.deserialize(val['email'], 'email'),
+          birthDate: ObjectSerializer.deserialize(val['birthDate'], 'date'),
+        });
+      }
+    }
+----
+
+The serializer/deserializer is extendable and generates appropriate code for all types
+in one serializer.
