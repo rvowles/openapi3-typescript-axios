@@ -2,7 +2,8 @@
 
 This is intended to be submitted back to the OpenAPI Generator crew because there are a number of tickets
 raised around its poor serialization and deserialization of data, date formatting, and support for alternative
-formats (such as uuids, emails, etc).
+formats (such as uuids, emails, etc), and honours Javascipt style formatting for variable names, properly
+swapping back and forth between the two (e.g. `snake_case` -> `snakeCase`, `@id` -> `_id`)
 
 At the moment it is generating "correct" code, as in Typescript is ok with it, but it is otherwise untested.
 
