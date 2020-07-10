@@ -1,0 +1,14 @@
+= Enhanced Axios Typescript Code generator
+
+This is intended to be submitted back to the OpenAPI Generator crew because there are a number of tickets
+raised around its poor serialization and deserialization of data, date formatting, and support for alternative
+formats (such as uuids, emails, etc).
+
+At the moment it is generating "correct" code, as in Typescript is ok with it, but it is otherwise untested.
+
+It needs to:
+
+- change the APIs to actually use the toJson and fromJson methods
+- support oneOf's and discriminators (lower priority)
+
+I have tested it on taffy for code gen only and it seems happy except for the NSW gas because of the discriminator.
