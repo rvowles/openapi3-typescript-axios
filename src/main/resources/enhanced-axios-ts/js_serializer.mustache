@@ -1,54 +1,56 @@
 
 {{#models}}
   {{#model}}
-    class {{classname}}TypeTransformer {
-      static toJson(val: {{classname}}): string {
-    {{#isEnum}}
-        return val?.toString();
-    {{/isEnum}}
-    {{^isEnum}}
-        return JSON.stringify({
-      {{#vars}}
-        {{#vendorExtensions.x-ts-string-type}}
-          '{{{baseName}}}': val.{{{name}}}?.toString(),
-        {{/vendorExtensions.x-ts-string-type}}
-        {{^vendorExtensions.x-ts-string-type}}
-          '{{{baseName}}}': ObjectSerializer.serialize(val.{{{name}}}, '{{{vendorExtensions.x-ts-deserialize-type}}}'),
-        {{/vendorExtensions.x-ts-string-type}}
-      {{/vars}}
-        });
-    {{/isEnum}}
+class {{classname}}TypeTransformer {
+  static toJson(val: {{classname}}): any {
+{{#isEnum}}
+    return val?.toString();
+{{/isEnum}}
+{{^isEnum}}
+    const data: any = {};
+    {{#vars}}
+    if (val.{{{name}}}) {
+    {{#vendorExtensions.x-ts-string-type}}
+      data['{{{baseName}}}'] = val.{{{name}}}.toString();
+    {{/vendorExtensions.x-ts-string-type}}
+    {{^vendorExtensions.x-ts-string-type}}
+      data['{{{baseName}}}'] = ObjectSerializer.serialize(val.{{{name}}}, '{{{vendorExtensions.x-ts-deserialize-type}}}');
+    {{/vendorExtensions.x-ts-string-type}}
+    }
+    {{/vars}}
+    return data;
+{{/isEnum}}
+  }
+
+  // expect this to be a decoded value
+  static fromJson(val: any): {{classname}} {
+{{#isEnum}}
+    if (val === null || val === undefined) return undefined;
+    switch (val.toString()) {
+    {{#allowableValues}}
+      {{#enumVars}}
+        case {{{value}}}:
+          return {{classname}}.{{{name}}};
+      {{/enumVars}}
+    {{/allowableValues}}
     }
 
-      // expect this to be a decoded value
-      static fromJson(val: any): {{classname}} {
-    {{#isEnum}}
-        if (val === null || val === undefined) return undefined;
-        switch (val.toString()) {
-        {{#allowableValues}}
-          {{#enumVars}}
-            case {{{value}}}:
-              return {{classname}}.{{{name}}};
-          {{/enumVars}}
-        {{/allowableValues}}
-        }
-
-        return undefined;
-    {{/isEnum}}
-    {{^isEnum}}
-        return new {{classname}}({
-        {{#vars}}
-          {{#vendorExtensions.x-ts-string-type}}
-          {{name}}: val['{{{baseName}}}']?.toString(),
-          {{/vendorExtensions.x-ts-string-type}}
-          {{^vendorExtensions.x-ts-string-type}}
-          {{name}}: ObjectSerializer.deserialize(val['{{{baseName}}}'], '{{{vendorExtensions.x-ts-deserialize-type}}}'),
-          {{/vendorExtensions.x-ts-string-type}}
-        {{/vars}}
-        });
-    {{/isEnum}}
-      }
-    }
+    return undefined;
+{{/isEnum}}
+{{^isEnum}}
+    return new {{classname}}({
+    {{#vars}}
+      {{#vendorExtensions.x-ts-string-type}}
+      {{name}}: val['{{{baseName}}}']?.toString(),
+      {{/vendorExtensions.x-ts-string-type}}
+      {{^vendorExtensions.x-ts-string-type}}
+      {{name}}: ObjectSerializer.deserialize(val['{{{baseName}}}'], '{{{vendorExtensions.x-ts-deserialize-type}}}'),
+      {{/vendorExtensions.x-ts-string-type}}
+    {{/vars}}
+    });
+{{/isEnum}}
+  }
+}
   {{/model}}
 {{/models}}
 
@@ -82,7 +84,7 @@ export class ObjectSerializer {
       }
     }
 
-     switch (targetType.toLowerCase()) {
+     switch (targetType) {
       case 'String':
       case 'string':
       case 'email':
@@ -94,10 +96,12 @@ export class ObjectSerializer {
       case 'float':
       case 'boolean':
         return value;
+      case 'object':
+        return value;
       case 'Date':
         const val = value as Date;
         return `${val.getFullYear}-${val.getMonth()}-${val.getDay()}`;
-      case `DateTime`:
+      case 'DateTime':
         return (value as Date).toISOString();
 {{#models}}
   {{#model}}
@@ -143,24 +147,26 @@ export class ObjectSerializer {
       }
     }
 
-    switch (targetType.toLowerCase()) {
+    switch (targetType) {
       case 'String':
       case 'string':
       case 'email':
       case 'uuid':
-        return '$value';
+        return value.toString();
       case 'int':
-         return value instanceof Number ? value : parseInt(`$value`);
+         return value instanceof Number ? value : parseInt(value.toString());
       case 'num':
       case 'number':
       case 'double':
       case 'float':
-        return value instanceof Number ? value : parseFloat(`$value`);
+        return value instanceof Number ? value : parseFloat(value.toString());
       case 'boolean':
-        return value instanceof Boolean ? value : `$value`.toLowerCase() == 'true';
+        return value instanceof Boolean ? value : value.toString().toLowerCase() == 'true';
+      case 'object':
+        return value;
       case 'Date':
         return new Date(`${value}T00:00:00Z`);
-      case `DateTime`:
+      case 'DateTime':
         return new Date(value.toString());
 {{#models}}
   {{#model}}

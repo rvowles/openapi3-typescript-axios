@@ -8,7 +8,7 @@ import java.util.Arrays;
 public class SampleTest {
   @Test
   public void runGenerator() {
-    String location = getClass().getResource("/sample1.yaml").getFile();
+    String location = getClass().getResource("/sample2.yaml").getFile();
     OpenAPIGenerator.main(Arrays.asList("generate",
       "--input-spec", location,
       "--generator-name", "typescript-axios-enhanced",

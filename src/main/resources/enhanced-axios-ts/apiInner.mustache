@@ -198,7 +198,12 @@ export const {{classname}}AxiosParamCreator = function (configuration?: Configur
     {{/hasFormParams}}
     {{#bodyParam}}
             const needsSerialization = (typeof {{paramName}} !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+      {{^useEnhancedSerializer}}
             localVarRequestOptions.data =  needsSerialization ? JSON.stringify({{paramName}} !== undefined ? {{paramName}} : {}) : ({{paramName}} || "");
+      {{/useEnhancedSerializer}}
+      {{#useEnhancedSerializer}}
+            localVarRequestOptions.data =  needsSerialization ? JSON.stringify({{paramName}} !== undefined ? ObjectSerializer.serialize({{paramName}}, '{{{vendorExtensions.x-ts-deserialize-type}}}') : {}) : ({{paramName}} || "");
+      {{/useEnhancedSerializer}}
     {{/bodyParam}}
 
             return {
@@ -233,7 +238,15 @@ export const {{classname}}Fp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await {{classname}}AxiosParamCreator(configuration).{{nickname}}({{#allParams}}{{paramName}}, {{/allParams}}options);
             return (axios: AxiosInstance = globalAxios, basePath: string = BASE_PATH) => {
                 const axiosRequestArgs = {...localVarAxiosArgs.options, url: basePath + localVarAxiosArgs.url};
-                return axios.request(axiosRequestArgs);
+      {{^useEnhancedSerializer}}
+          return axios.request(axiosRequestArgs);
+      {{/useEnhancedSerializer}}
+      {{#useEnhancedSerializer}}
+                return axios.request(axiosRequestArgs).then((data) => {
+                  data.data = ObjectSerializer.deserialize(data.data, '{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}object{{/returnType}}');
+                  return data;
+                });
+      {{/useEnhancedSerializer}}
             };
         },
     {{/operation}}

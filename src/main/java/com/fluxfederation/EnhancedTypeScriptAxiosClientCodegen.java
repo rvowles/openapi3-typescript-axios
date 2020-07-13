@@ -47,6 +47,7 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
     
     typeMapping.put("DateTime", "Date");
     typeMapping.put("date", "Date");
+    typeMapping.put("AnyType", "any");
 
     this.cliOptions.add(new CliOption(NPM_REPOSITORY, "Use this property to set an url of your private npmRepo in the package.json"));
     this.cliOptions.add(new CliOption(WITH_INTERFACES,
@@ -146,6 +147,33 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
       .filter(op -> op.hasConsumes)
       .filter(op -> op.consumes.stream().anyMatch(opc -> opc.values().stream().anyMatch("multipart/form-data"::equals)))
       .forEach(op -> op.vendorExtensions.putIfAbsent("multipartFormData", true));
+
+    if (additionalProperties.containsKey(USE_ENHANCED_SERIALIZER)) {
+      operations.stream()
+        .filter(op -> op.hasProduces)
+        .filter(op -> op.bodyParam != null)
+        .map(op -> op.bodyParam)
+        .forEach(bp -> {
+          if (bp.dataType != null) {
+            if ("string".equals(bp.dataType.toLowerCase())) {
+              if (bp.dataFormat == null) {
+                bp.vendorExtensions.put("x-ts-string-type", Boolean.TRUE);
+                bp.vendorExtensions.put("x-ts-deserialize-type",  "string");
+              } else {
+                bp.vendorExtensions.put("x-ts-deserialize-type",  bp.dataFormat);
+              }
+            } else {
+              if ("date".equals(bp.dataType.toLowerCase())) {
+                bp.vendorExtensions.put("x-ts-deserialize-type",  bp.dataFormat);
+              } else {
+                bp.vendorExtensions.put("x-ts-deserialize-type", bp.dataType);
+              }
+            }
+          } else {
+            bp.vendorExtensions.put("x-ts-deserialize-type", "object");
+          }
+        });
+    }
     return objs;
   }
 
@@ -171,6 +199,27 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
     addImport(codegenModel, codegenModel.additionalPropertiesType);
   }
 
+  private void postProcessCodegenProperty(CodegenProperty var) {
+    if (var.dataType == null) {
+      var.vendorExtensions.put("x-ts-deserialize-type", "object");
+    } else {
+      if ("string".equals(var.dataType.toLowerCase())) {
+        if (var.dataFormat == null) {
+          var.vendorExtensions.put("x-ts-string-type", Boolean.TRUE);
+          var.vendorExtensions.put("x-ts-deserialize-type",  "string");
+        } else {
+          var.vendorExtensions.put("x-ts-deserialize-type",  var.dataFormat);
+        }
+      } else {
+        if ("date".equals(var.dataType.toLowerCase())) {
+          var.vendorExtensions.put("x-ts-deserialize-type",  var.dataFormat);
+        } else {
+          var.vendorExtensions.put("x-ts-deserialize-type", var.dataType);
+        }
+      }
+    }
+  }
+
   @Override
   @SuppressWarnings("unchecked")
   public Map<String, Object> postProcessModels(Map<String, Object> objs) {
@@ -191,19 +240,7 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
 
       if (additionalProperties.containsKey(USE_ENHANCED_SERIALIZER)) {
         for (CodegenProperty var : cm.vars) {
-          if ("string".equals(var.dataType.toLowerCase())) {
-            if (var.dataFormat == null) {
-              var.vendorExtensions.put("x-ts-string-type", Boolean.TRUE);
-            } else {
-              var.vendorExtensions.put("x-ts-deserialize-type",  var.dataFormat);
-            }
-          } else {
-            if ("date".equals(var.dataType.toLowerCase())) {
-              var.vendorExtensions.put("x-ts-deserialize-type",  var.dataFormat);
-            } else {
-              var.vendorExtensions.put("x-ts-deserialize-type", var.dataType);
-            }
-          }
+          postProcessCodegenProperty(var);
         }
       }
 

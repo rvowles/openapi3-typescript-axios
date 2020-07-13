@@ -9,7 +9,9 @@ At the moment it is generating "correct" code, as in Typescript is ok with it, b
 
 It needs to:
 
-- change the APIs to actually use the toJson and fromJson methods
+- support Javascript style AdditionalProperties - these generate code like `{ [key: string]: Array<Date>; }` and
+  according to this post: https://stackoverflow.com/questions/13631557/typescript-objects-as-dictionary-types-as-in-c-sharp
+should now generate Record<string,Date>
 - support oneOf's and discriminators (lower priority)
 
 I have tested it on taffy for code gen only and it seems happy except for the NSW gas because of the discriminator.
