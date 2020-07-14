@@ -112,6 +112,7 @@ paths:
 components:
   schemas:
     EventRequest:
+      additionalProperties: true
       properties:
         user_id:
           type: string

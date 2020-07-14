@@ -2,6 +2,9 @@
 {{#models}}
   {{#model}}
 class {{classname}}TypeTransformer {
+{{#additionalPropertiesType}}
+  private static otherProperties = [{{#vars}}'{{{name}}}', {{/vars}}];
+{{/additionalPropertiesType}}
   static toJson(val: {{classname}}): any {
 {{#isEnum}}
     return val?.toString();
@@ -10,14 +13,28 @@ class {{classname}}TypeTransformer {
     const data: any = {};
     {{#vars}}
     if (val.{{{name}}}) {
-    {{#vendorExtensions.x-ts-string-type}}
-      data['{{{baseName}}}'] = val.{{{name}}}.toString();
-    {{/vendorExtensions.x-ts-string-type}}
-    {{^vendorExtensions.x-ts-string-type}}
+    {{#vendorExtensions.x-ts-additional-props}}
+      const p = {};
+      for(let prop in val.{{{name}}}) {
+        if (val.{{{name}}}.hasOwnProperty(prop)) {
+          p[prop] = ObjectSerializer.serialize(val.{{{name}}}[prop], '{{{vendorExtensions.x-ts-additional-props}}}');
+        }
+        data['{{{baseName}}}'] = p;
+      }
+    {{/vendorExtensions.x-ts-additional-props}}
+    {{^vendorExtensions.x-ts-additional-props}}
       data['{{{baseName}}}'] = ObjectSerializer.serialize(val.{{{name}}}, '{{{vendorExtensions.x-ts-deserialize-type}}}');
-    {{/vendorExtensions.x-ts-string-type}}
+    {{/vendorExtensions.x-ts-additional-props}}
     }
     {{/vars}}
+    {{#additionalPropertiesType}}
+    const otherProperties = [{{#vars}}'{{{name}}}', {{/vars}}];
+    for(let prop in val) {
+      if ({{classname}}TypeTransformer.otherProperties.indexOf(prop) === -1 && val.hasOwnProperty(prop)) {
+        data[prop] = ObjectSerializer.serialize(val[prop], '{{{additionalPropertiesType}}}');
+      }
+    }
+    {{/additionalPropertiesType}}
     return data;
 {{/isEnum}}
   }
@@ -38,16 +55,35 @@ class {{classname}}TypeTransformer {
     return undefined;
 {{/isEnum}}
 {{^isEnum}}
-    return new {{classname}}({
+    const init = {
     {{#vars}}
-      {{#vendorExtensions.x-ts-string-type}}
-      {{name}}: val['{{{baseName}}}']?.toString(),
-      {{/vendorExtensions.x-ts-string-type}}
-      {{^vendorExtensions.x-ts-string-type}}
+      {{^vendorExtensions.x-ts-additional-props}}
       {{name}}: ObjectSerializer.deserialize(val['{{{baseName}}}'], '{{{vendorExtensions.x-ts-deserialize-type}}}'),
-      {{/vendorExtensions.x-ts-string-type}}
+      {{/vendorExtensions.x-ts-additional-props}}
     {{/vars}}
-    });
+    };
+    {{#vars}}
+    {{#vendorExtensions.x-ts-additional-props}}
+    if (val['{{{baseName}}}']) {
+      const data = {};
+      const valData = val['{{{baseName}}}'];
+      for(let prop in valData) {
+        if (valData.hasOwnProperty(prop)) {
+          data[prop] = ObjectSerializer.serialize(valData[prop], '{{{vendorExtensions.x-ts-additional-props}}}');
+        }
+      }
+      init['{{{name}}}'] = data;
+    }
+    {{/vendorExtensions.x-ts-additional-props}}
+    {{/vars}}
+    {{#additionalPropertiesType}}
+    for(let prop in val) {
+      if ({{classname}}TypeTransformer.otherProperties.indexOf(prop) === -1 && val.hasOwnProperty(prop)) {
+        init[prop] = ObjectSerializer.deserialize(val[prop], '{{{additionalPropertiesType}}}');
+      }
+    }
+    {{/additionalPropertiesType}}
+    return new {{classname}}(init);
 {{/isEnum}}
   }
 }
@@ -120,20 +156,6 @@ export class ObjectSerializer {
     } // switch
 
     return undefined;
-  }
-
-  public static deserializeFromString<T>(json: string, targetType: string) : T {
-    if (json == null) { // HTTP Code 204
-      return null;
-    }
-
-    // Remove all spaces.  Necessary for reg expressions as well.
-    targetType = targetType.replace(' ', '');
-
-    if (targetType == 'String') return json as any as T;
-
-    const decodedJson = JSON.parse(json);
-    return ObjectSerializer.deserialize(decodedJson, targetType) as T;
   }
 
   public static deserialize(value: any, targetType: string): any {

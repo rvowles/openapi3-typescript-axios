@@ -203,9 +203,11 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
     if (var.dataType == null) {
       var.vendorExtensions.put("x-ts-deserialize-type", "object");
     } else {
-      if ("string".equals(var.dataType.toLowerCase())) {
+      if (var.dataType.startsWith("{")) {
+        var.vendorExtensions.put("x-ts-record-type",  "Record<string, " + var.items.dataType + ">");
+        var.vendorExtensions.put("x-ts-additional-props", var.items.dataType);
+      } else if ("string".equals(var.dataType.toLowerCase())) {
         if (var.dataFormat == null) {
-          var.vendorExtensions.put("x-ts-string-type", Boolean.TRUE);
           var.vendorExtensions.put("x-ts-deserialize-type",  "string");
         } else {
           var.vendorExtensions.put("x-ts-deserialize-type",  var.dataFormat);
