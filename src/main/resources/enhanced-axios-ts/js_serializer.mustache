@@ -28,7 +28,6 @@ class {{classname}}TypeTransformer {
     }
     {{/vars}}
     {{#additionalPropertiesType}}
-    const otherProperties = [{{#vars}}'{{{name}}}', {{/vars}}];
     for(let prop in val) {
       if ({{classname}}TypeTransformer.otherProperties.indexOf(prop) === -1 && val.hasOwnProperty(prop)) {
         data[prop] = ObjectSerializer.serialize(val[prop], '{{{additionalPropertiesType}}}');
