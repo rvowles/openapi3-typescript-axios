@@ -1,20 +1,53 @@
 = Enhanced Axios Typescript Code generator
 
-This is intended to be submitted back to the OpenAPI Generator crew because there are a number of tickets
-raised around its poor serialization and deserialization of data, date formatting, and support for alternative
-formats (such as uuids, emails, etc), and honours Javascipt style formatting for variable names, properly
-swapping back and forth between the two (e.g. `snake_case` -> `snakeCase`, `@id` -> `_id`)
+NOTE: Feedback in terms of issues appreciated! 
 
-At the moment it is generating "correct" code, as in Typescript is ok with it, but it is otherwise untested.
+This is intended to be submitted back to the OpenAPI Generator crew because there are a number of tickets
+raised around its:
+
+- poor serialization and deserialization of data,
+- date formatting
+- support for alternative formats (such as uuids, emails, etc),
+- lack of serialization overrides (if you have a format we don't support you can add in your own custom serializer for it)
+- honours Javascript style formatting for variable names, properly
+  swapping back and forth between the two (e.g. `snake_case` -> `snakeCase`, `@id` -> `_id`)
+- incomplete types when multiple return codes exist and support different return objects
+
+At the moment it is generating "correct" code, and the serialization works for simple types and is tested with those
+types. It needs more exhaustive testing around:
+
+- arrays
+- deep nested objects
+- date and date-times
+- additionalProperty types
 
 It needs to:
 
-- support Javascript style AdditionalProperties - these generate code like `{ [key: string]: Array<Date>; }` and
-  according to this post: https://stackoverflow.com/questions/13631557/typescript-objects-as-dictionary-types-as-in-c-sharp
-should now generate Record<string,Date>
 - support oneOf's and discriminators (lower priority)
+- being able to understand the full hierarchy of a "type" and determine if any of the types down the tree would cause
+serialization issues and allow a flag to bypass and just use the returned object as is. This would mean it wouldn't
+support classes or serialization overrides.
+- support multiple return types as per API, so that if an API returns a 201, 400 or 422 and they all have different return
+objects the `AxiosPromise` should be `AxiosPromise<A|B|C>` style.
 
-I have tested it on taffy for code gen only and it seems happy except for the NSW gas because of the discriminator.
+== How to use
+
+Download and build this project. Download the OpenAPI 4.3.1 jar file.
+
+We use an additional property to trigger the extensions so it remains backwards compatible and won't mess with people's
+existing code:
+
+----
+--additional-properties useEnhancedSerializer=true
+----
+
+and the type of generator is currently  `typescript-axios-enhanced`.
+
+----
+java -cp "openapi-generator-cli-4.3.1.jar:openapi-tsaxios-generator-1.1-SNAPSHOT.jar" org.openapitools.codegen.OpenAPIGenerator generate -i api.yaml -g typescript-axios-enhanced --additional-properties supportsES6 --additional-properties nullSafeAdditionalProps --additional-properties useEnhancedSerializer=true -o api
+----
+
+== Example of code
 
 Party for example is created like this:
 
@@ -77,32 +110,50 @@ for this is also generates a hidden serializer/deserializer. This is outside bec
 [source,typescript]
 ----
 class PartyTypeTransformer {
-      static toJson(val: Party): string {
-        return JSON.stringify({
-          'partyType': ObjectSerializer.serialize(val.partyType, 'PartyType'),
-          'givenName': val.givenName?.toString(),
-          'additionalName': val.additionalName?.toString(),
-          'familyName': val.familyName?.toString(),
-          'telephone': val.telephone?.toString(),
-          'email': ObjectSerializer.serialize(val.email, 'email'),
-          'birthDate': ObjectSerializer.serialize(val.birthDate, 'date'),
-        });
+  static toJson(val: Party): any {
+    const data: any = {};
+    if (val.partyType) {
+      data['partyType'] = ObjectSerializer.serialize(val.partyType, 'PartyType');
     }
+    if (val.givenName) {
+      data['givenName'] = ObjectSerializer.serialize(val.givenName, 'string');
+    }
+    if (val.additionalName) {
+      data['additionalName'] = ObjectSerializer.serialize(val.additionalName, 'string');
+    }
+    if (val.familyName) {
+      data['familyName'] = ObjectSerializer.serialize(val.familyName, 'string');
+    }
+    if (val.telephone) {
+      data['telephone'] = ObjectSerializer.serialize(val.telephone, 'string');
+    }
+    if (val.email) {
+      data['email'] = ObjectSerializer.serialize(val.email, 'email');
+    }
+    if (val.birthDate) {
+      data['birthDate'] = ObjectSerializer.serialize(val.birthDate, 'date');
+    }
+    return data;
+  }
 
-      // expect this to be a decoded value
-      static fromJson(val: any): Party {
-        return new Party({
-          partyType: ObjectSerializer.deserialize(val['partyType'], 'PartyType'),
-          givenName: val['givenName']?.toString(),
-          additionalName: val['additionalName']?.toString(),
-          familyName: val['familyName']?.toString(),
-          telephone: val['telephone']?.toString(),
-          email: ObjectSerializer.deserialize(val['email'], 'email'),
-          birthDate: ObjectSerializer.deserialize(val['birthDate'], 'date'),
-        });
-      }
-    }
+  // expect this to be a decoded value
+  static fromJson(val: any): Party {
+    const init = {
+      partyType: ObjectSerializer.deserialize(val['partyType'], 'PartyType'),
+      givenName: ObjectSerializer.deserialize(val['givenName'], 'string'),
+      additionalName: ObjectSerializer.deserialize(val['additionalName'], 'string'),
+      familyName: ObjectSerializer.deserialize(val['familyName'], 'string'),
+      telephone: ObjectSerializer.deserialize(val['telephone'], 'string'),
+      email: ObjectSerializer.deserialize(val['email'], 'email'),
+      birthDate: ObjectSerializer.deserialize(val['birthDate'], 'date'),
+    };
+    return new Party(init);
+  }
+}
 ----
+
+The toJson uses `if` to determine if there is a value to ensure it does not send the field at all if there is no value.
+This mechanism is also used for the `additionalProperties` style capability.
 
 The serializer/deserializer is extendable and generates appropriate code for all types
 in one serializer.
