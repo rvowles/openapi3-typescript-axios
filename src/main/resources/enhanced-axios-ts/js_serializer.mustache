@@ -1,5 +1,41 @@
 
 {{#models}}
+{{#hasOneOf}}
+  {{#model}}
+class {{classname}}TypeTransformer {
+  static toJson(val: {{classname}}): any {
+    switch(val['{{{discriminator.propertyName}}}']) {
+      {{#discriminator.mappedModels}}
+      case '{{{mappingName}}}':
+        return ObjectSerializer.serialize(val, '{{{modelName}}}');
+      {{/discriminator.mappedModels}}
+  {{#oneOf}}
+      case '{{{.}}}':
+        return ObjectSerializer.serialize(val, '{{{.}}}');
+  {{/oneOf}}
+      default:
+        return val;
+    }
+  }
+
+  static fromJson(val: any): {{classname}} {
+    switch(val['{{{discriminator.propertyName}}}']) {
+{{#discriminator.mappedModels}}
+        case '{{{mappingName}}}':
+          return ObjectSerializer.deserialize(val, '{{{modelName}}}');
+{{/discriminator.mappedModels}}
+      {{#oneOf}}
+        case '{{{.}}}':
+          return ObjectSerializer.deserialize(val, '{{{.}}}');
+      {{/oneOf}}
+      default:
+        return val;
+    }
+  }
+}
+    {{/model}}
+{{/hasOneOf}}
+{{^hasOneOf}}
   {{#model}}
 class {{classname}}TypeTransformer {
 {{#additionalPropertiesType}}
@@ -87,6 +123,7 @@ class {{classname}}TypeTransformer {
   }
 }
   {{/model}}
+{{/hasOneOf}}
 {{/models}}
 
 

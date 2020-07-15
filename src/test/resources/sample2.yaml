@@ -113,7 +113,6 @@ paths:
       tags:
         - TestService
       operationId: helloOp2
-      x-dart-rich-operationId: helloOp2Extended
       responses:
         "200":
           description: "Resulting weird api"
@@ -121,8 +120,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/com.bluetrainsoftware.AddProps2"
+  /one-off:
+    post:
+      tags:
+        - TestService
+      operationId: helloOp3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MyRequest"
+      responses:
+        "200":
+          description: check
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/com.bluetrainsoftware.AddProps2"
 components:
   schemas:
+    MyRequest:
+      oneOf:
+        - $ref: "#/components/schemas/EventRequest"
+        - $ref: "#/components/schemas/AddProps3"
+      discriminator:
+        propertyName: discrim
+        mapping:
+          dog: "#/components/schemas/AddProps3"
     EventRequest:
       additionalProperties: true
       properties:
@@ -130,6 +154,8 @@ components:
           type: string
         enable_to_watch:
           type: integer
+        discrim:
+          type: string
     EventResponse:
       properties:
         error:
@@ -238,6 +264,8 @@ components:
                 type: string
     AddProps3:
       properties:
+        discrim:
+          type: string
         extra:
           type: object
           additionalProperties:
