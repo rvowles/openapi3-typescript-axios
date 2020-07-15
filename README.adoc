@@ -19,16 +19,17 @@ types. It needs more exhaustive testing around:
 - arrays
 - deep nested objects
 - date and date-times
-- additionalProperty types
+- additionalProperty types (i.e. Record types)
 
 It needs to:
 
 - support oneOf's and discriminators (lower priority)
+
+it might:
+
 - being able to understand the full hierarchy of a "type" and determine if any of the types down the tree would cause
 serialization issues and allow a flag to bypass and just use the returned object as is. This would mean it wouldn't
 support classes or serialization overrides.
-- support multiple return types as per API, so that if an API returns a 201, 400 or 422 and they all have different return
-objects the `AxiosPromise` should be `AxiosPromise<A|B|C>` style.
 
 == How to use
 

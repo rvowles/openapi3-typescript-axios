@@ -13,11 +13,16 @@ import org.openapitools.codegen.meta.features.DocumentationFeature;
 import org.openapitools.codegen.utils.ModelUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClientCodegen {
   public static final String NPM_REPOSITORY = "npmRepository";
@@ -151,6 +156,17 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
     if (additionalProperties.containsKey(USE_ENHANCED_SERIALIZER)) {
       operations.stream()
         .filter(op -> op.hasProduces)
+        .forEach(op -> {
+          Set<String> responseTypes = op.responses.stream()
+            .map(r -> (r.dataType == null) ? "void" : r.dataType)
+            .collect(Collectors.toSet());
+          if (responseTypes.isEmpty()) {
+            responseTypes = new HashSet<>(Collections.singletonList("void"));
+          }
+          op.vendorExtensions.put("x-ts-responseTypes", String.join("|", responseTypes));
+        });
+      operations.stream()
+        .filter(op -> op.hasConsumes)
         .filter(op -> op.bodyParam != null)
         .map(op -> op.bodyParam)
         .forEach(bp -> {

@@ -63,6 +63,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Event"
+        "401":
+          description: "failed perms"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddProps3"
+        "403":
+          description: "failed perms"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventResponse"
   #  /event/upcoming2:
   #    post:
   #      tags:
