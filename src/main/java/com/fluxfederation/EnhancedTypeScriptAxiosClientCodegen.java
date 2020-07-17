@@ -31,6 +31,7 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
   public static final String WITHOUT_PREFIX_ENUMS = "withoutPrefixEnums";
   public static final String USE_SINGLE_REQUEST_PARAMETER = "useSingleRequestParameter";
   public static final String USE_ENHANCED_SERIALIZER = "useEnhancedSerializer";
+  public static final String USE_COALESCE_RETURN_TYPES = "useCoalesceReturnTypes";
 
   public static final String TEMPLATE_FOLDER = "enhanced-axios-ts";
 
@@ -62,6 +63,8 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
     this.cliOptions.add(new CliOption(USE_SINGLE_REQUEST_PARAMETER, "Setting this property to true will generate functions with a single argument containing all API endpoint parameters instead of one argument per parameter.", SchemaTypeUtil.BOOLEAN_TYPE).defaultValue(Boolean.FALSE.toString()));
     this.cliOptions.add(new CliOption(USE_ENHANCED_SERIALIZER, "Setting this will ensure Axios complies with " +
       "serialization and validation rules and it generates classes to match interfaces"));
+    this.cliOptions.add(new CliOption(USE_COALESCE_RETURN_TYPES, "Make a function return all of the  types it " +
+      "actually returns wrapped in an AxiosResponse."));
   }
 
   @Override
@@ -139,6 +142,27 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
 
   }
 
+  private void enhanceDataTarget(String dataType, String dataFormat, Map<String, Object> vendorExtensions) {
+    if (dataType != null) {
+      if ("string".equals(dataType.toLowerCase())) {
+        if (dataFormat == null) {
+          vendorExtensions.put("x-ts-string-type", Boolean.TRUE);
+          vendorExtensions.put("x-ts-deserialize-type",  "string");
+        } else {
+          vendorExtensions.put("x-ts-deserialize-type",  dataFormat);
+        }
+      } else {
+        if ("date".equals(dataType.toLowerCase())) {
+          vendorExtensions.put("x-ts-deserialize-type",  dataFormat);
+        } else {
+          vendorExtensions.put("x-ts-deserialize-type", dataType);
+        }
+      }
+    } else {
+      vendorExtensions.put("x-ts-deserialize-type", "object");
+    }
+  }
+
   @Override
   public Map<String, Object> postProcessOperationsWithModels(Map<String, Object> objs, List<Object> allModels) {
     objs = super.postProcessOperationsWithModels(objs, allModels);
@@ -164,31 +188,17 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
             responseTypes = new HashSet<>(Collections.singletonList("void"));
           }
           op.vendorExtensions.put("x-ts-responseTypes", String.join("|", responseTypes));
+
+          op.responses.forEach(bp -> {
+            enhanceDataTarget(bp.dataType, null, bp.vendorExtensions);
+            bp.vendorExtensions.put("x-ts-is-error", bp.is4xx || bp.is5xx);
+          });
         });
       operations.stream()
         .filter(op -> op.hasConsumes)
         .filter(op -> op.bodyParam != null)
         .map(op -> op.bodyParam)
-        .forEach(bp -> {
-          if (bp.dataType != null) {
-            if ("string".equals(bp.dataType.toLowerCase())) {
-              if (bp.dataFormat == null) {
-                bp.vendorExtensions.put("x-ts-string-type", Boolean.TRUE);
-                bp.vendorExtensions.put("x-ts-deserialize-type",  "string");
-              } else {
-                bp.vendorExtensions.put("x-ts-deserialize-type",  bp.dataFormat);
-              }
-            } else {
-              if ("date".equals(bp.dataType.toLowerCase())) {
-                bp.vendorExtensions.put("x-ts-deserialize-type",  bp.dataFormat);
-              } else {
-                bp.vendorExtensions.put("x-ts-deserialize-type", bp.dataType);
-              }
-            }
-          } else {
-            bp.vendorExtensions.put("x-ts-deserialize-type", "object");
-          }
-        });
+        .forEach(bp -> enhanceDataTarget(bp.dataType, bp.dataFormat, bp.vendorExtensions));
     }
     return objs;
   }

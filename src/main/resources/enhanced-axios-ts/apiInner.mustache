@@ -234,19 +234,40 @@ export const {{classname}}Fp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<{{^useEnhancedSerializer}}{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/returnType}}{{/useEnhancedSerializer}}{{#useEnhancedSerializer}}{{{vendorExtensions.x-ts-responseTypes}}}{{/useEnhancedSerializer}}>> {
+        async {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<{{^useCoalesceReturnTypes}}{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/returnType}}{{/useCoalesceReturnTypes}}{{#useCoalesceReturnTypes}}{{{vendorExtensions.x-ts-responseTypes}}}{{/useCoalesceReturnTypes}}>> {
             const localVarAxiosArgs = await {{classname}}AxiosParamCreator(configuration).{{nickname}}({{#allParams}}{{paramName}}, {{/allParams}}options);
             return (axios: AxiosInstance = globalAxios, basePath: string = BASE_PATH) => {
                 const axiosRequestArgs = {...localVarAxiosArgs.options, url: basePath + localVarAxiosArgs.url};
-      {{^useEnhancedSerializer}}
+      {{^useCoalesceReturnTypes}}
           return axios.request(axiosRequestArgs);
-      {{/useEnhancedSerializer}}
-      {{#useEnhancedSerializer}}
+      {{/useCoalesceReturnTypes}}
+      {{#useCoalesceReturnTypes}}
                 return axios.request(axiosRequestArgs).then((data) => {
-                  data.data = ObjectSerializer.deserialize(data.data, '{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}object{{/returnType}}');
+          {{#hasProduces}}
+              {{#responses}}
+                {{^vendorExtensions.x-ts-is-error}}
+                if (data.status === {{code}}) {
+                  data.data = ObjectSerializer.deserialize(data.data, '{{{vendorExtensions.x-ts-deserialize-type}}}');
+                }
+                {{/vendorExtensions.x-ts-is-error}}
+              {{/responses}}
+          {{/hasProduces}}
+
                   return data;
-                });
-      {{/useEnhancedSerializer}}
+                }).catch( (err) => {
+                  const data = err.response;
+        {{#hasProduces}}
+          {{#responses}}
+            {{#vendorExtensions.x-ts-is-error}}
+                if (data.status === {{code}}) {
+                  data.data = ObjectSerializer.deserialize(data.data, '{{{vendorExtensions.x-ts-deserialize-type}}}');
+                }
+            {{/vendorExtensions.x-ts-is-error}}
+          {{/responses}}
+        {{/hasProduces}}
+                return data;
+          });
+      {{/useCoalesceReturnTypes}}
             };
         },
     {{/operation}}
@@ -272,7 +293,7 @@ export const {{classname}}Factory = function (configuration?: Configuration, bas
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}options?: any): AxiosPromise<{{^useEnhancedSerializer}}{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/returnType}}{{/useEnhancedSerializer}}{{#useEnhancedSerializer}}{{{vendorExtensions.x-ts-responseTypes}}}{{/useEnhancedSerializer}}> {
+        {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}options?: any): AxiosPromise<{{^useCoalesceReturnTypes}}{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/returnType}}{{/useCoalesceReturnTypes}}{{#useCoalesceReturnTypes}}{{{vendorExtensions.x-ts-responseTypes}}}{{/useCoalesceReturnTypes}}> {
             return {{classname}}Fp(configuration).{{nickname}}({{#allParams}}{{paramName}}, {{/allParams}}options).then((request) => request(axios, basePath));
         },
     {{/operation}}
@@ -300,7 +321,7 @@ export interface {{classname}}Interface {
      * @throws {RequiredError}
      * @memberof {{classname}}Interface
      */
-    {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}options?: any): AxiosPromise<{{^useEnhancedSerializer}}{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/returnType}}{{/useEnhancedSerializer}}{{#useEnhancedSerializer}}{{{vendorExtensions.x-ts-responseTypes}}}{{/useEnhancedSerializer}}>;
+    {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}options?: any): AxiosPromise<{{^useCoalesceReturnTypes}}{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/returnType}}{{/useCoalesceReturnTypes}}{{#useCoalesceReturnTypes}}{{{vendorExtensions.x-ts-responseTypes}}}{{/useCoalesceReturnTypes}}>;
 
 {{/operation}}
 }
@@ -365,12 +386,12 @@ export class {{classname}} extends BaseAPI {
      * @memberof {{classname}}
      */
     {{#useSingleRequestParameter}}
-    public {{nickname}}({{#allParams.0}}requestParameters: {{classname}}{{operationIdCamelCase}}Request{{^hasRequiredParams}} = {}{{/hasRequiredParams}}, {{/allParams.0}}options?: any): AxiosPromise<{{^useEnhancedSerializer}}{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/returnType}}{{/useEnhancedSerializer}}{{#useEnhancedSerializer}}{{{vendorExtensions.x-ts-responseTypes}}}{{/useEnhancedSerializer}}> {
+    public {{nickname}}({{#allParams.0}}requestParameters: {{classname}}{{operationIdCamelCase}}Request{{^hasRequiredParams}} = {}{{/hasRequiredParams}}, {{/allParams.0}}options?: any): AxiosPromise<{{^useCoalesceReturnTypes}}{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/returnType}}{{/useCoalesceReturnTypes}}{{#useCoalesceReturnTypes}}{{{vendorExtensions.x-ts-responseTypes}}}{{/useCoalesceReturnTypes}}> {
         return {{classname}}Fp(this.configuration).{{nickname}}({{#allParams.0}}{{#allParams}}requestParameters.{{paramName}}, {{/allParams}}{{/allParams.0}}options).then((request) => request(this.axios, this.basePath));
     }
     {{/useSingleRequestParameter}}
     {{^useSingleRequestParameter}}
-    public {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}options?: any): AxiosPromise<{{^useEnhancedSerializer}}{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/returnType}}{{/useEnhancedSerializer}}{{#useEnhancedSerializer}}{{{vendorExtensions.x-ts-responseTypes}}}{{/useEnhancedSerializer}}> {
+    public {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}options?: any): AxiosPromise<{{^useCoalesceReturnTypes}}{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/returnType}}{{/useCoalesceReturnTypes}}{{#useCoalesceReturnTypes}}{{{vendorExtensions.x-ts-responseTypes}}}{{/useCoalesceReturnTypes}}> {
         return {{classname}}Fp(this.configuration).{{nickname}}({{#allParams}}{{paramName}}, {{/allParams}}options).then((request) => request(this.axios, this.basePath));
     }
     {{/useSingleRequestParameter}}

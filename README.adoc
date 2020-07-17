@@ -42,7 +42,20 @@ existing code:
 --additional-properties useEnhancedSerializer=true
 ----
 
-and the type of generator is currently  `typescript-axios-enhanced`.
+This property will give you back a pure AxiosResponse<T> or AxiosError<T> which will in fact not be deserialized. To do
+that you will need to manually call ObjectSerializer.deserialize(data.data, 'type'). Otherwise it will be the raw json
+object.
+
+If you wish to have it automatically deserialized, use
+
+----
+--additional-properties useCoalesceReturnTypes=true
+----
+
+And then your return types will be all of the possible return types from that method and it will check the status code
+for you and deserialize into the correct type.
+
+NOTE: the type of generator is currently  `typescript-axios-enhanced`.
 
 ----
 java -cp "openapi-generator-cli-4.3.1.jar:openapi-tsaxios-generator-1.1-SNAPSHOT.jar" org.openapitools.codegen.OpenAPIGenerator generate -i api.yaml -g typescript-axios-enhanced --additional-properties supportsES6 --additional-properties nullSafeAdditionalProps --additional-properties useEnhancedSerializer=true -o api

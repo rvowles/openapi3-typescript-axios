@@ -13,6 +13,7 @@ public class SampleTest {
       "--input-spec", location,
       "--generator-name", "typescript-axios-enhanced",
       "--additional-properties", "useEnhancedSerializer=true",
+      "--additional-properties", "useCoalesceReturnTypes=true",
       "--output", "target/" + getClass().getSimpleName())
       .toArray(new String[0]));
   }
