@@ -12,6 +12,7 @@ raised around its:
 - honours Javascript style formatting for variable names, properly
   swapping back and forth between the two (e.g. `snake_case` -> `snakeCase`, `@id` -> `_id`)
 - incomplete types when multiple return codes exist and support different return objects
+- support oneOf's and discriminators
 
 At the moment it is generating "correct" code, and the serialization works for simple types and is tested with those
 types. It needs more exhaustive testing around:
@@ -23,7 +24,6 @@ types. It needs more exhaustive testing around:
 
 It needs to:
 
-- support oneOf's and discriminators (lower priority)
 
 it might:
 
