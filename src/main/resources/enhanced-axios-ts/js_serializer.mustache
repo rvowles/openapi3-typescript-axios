@@ -184,9 +184,9 @@ export class ObjectSerializer {
       default:
         var match;
         if ((value instanceof Array) &&
-            (match = targetType.match(_regList)[1] !== undefined)) {
+            ((match = targetType.match(_regList)[1]) !== undefined)) {
           return [...value.map((v) => ObjectSerializer.serialize(v, match))];
-        } else if (value instanceof Map && (match = targetType.match(_regMap)[1] !== undefined)) {
+        } else if (value instanceof Map && ((match = targetType.match(_regMap)[1]) !== undefined)) {
           return new Map(Array.from(value, ([k, v]) => [k, ObjectSerializer.serialize(v, match)]));
         }
     } // switch
@@ -235,9 +235,9 @@ export class ObjectSerializer {
       default:
         var match;
         if ((value instanceof Array) &&
-            (match = targetType.match(_regList)[1] !== undefined)) {
+            ((match = targetType.match(_regList)[1]) !== undefined)) {
           return [...value.map((v) => ObjectSerializer.deserialize(v, match))];
-        } else if (value instanceof Map && (match = targetType.match(_regMap)[1] !== undefined)) {
+        } else if (value instanceof Map && ((match = targetType.match(_regMap)[1]) !== undefined)) {
           return new Map(Array.from(value, ([k, v]) => [k, ObjectSerializer.deserialize(v, match)]));
         }
     } // switch
