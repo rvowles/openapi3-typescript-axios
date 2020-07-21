@@ -4,16 +4,17 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.parser.util.SchemaTypeUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.openapitools.codegen.CliOption;
+import org.openapitools.codegen.CodegenConstants;
 import org.openapitools.codegen.CodegenModel;
 import org.openapitools.codegen.CodegenOperation;
 import org.openapitools.codegen.CodegenProperty;
 import org.openapitools.codegen.SupportingFile;
+import org.openapitools.codegen.config.GlobalSettings;
 import org.openapitools.codegen.languages.AbstractTypeScriptClientCodegen;
 import org.openapitools.codegen.meta.features.DocumentationFeature;
 import org.openapitools.codegen.utils.ModelUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -98,6 +99,7 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
     return sb.toString();
   }
 
+
   @Override
   public void processOpts() {
     super.processOpts();
@@ -112,29 +114,51 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
     additionalProperties.put("apiRelativeToRoot", apiRelativeToRoot);
     additionalProperties.put("modelRelativeToRoot", modelRelativeToRoot);
 
+    boolean generateApis = Boolean.TRUE.equals(additionalProperties.get(CodegenConstants.GENERATE_APIS));
+    boolean generateModels = Boolean.TRUE.equals(additionalProperties.get(CodegenConstants.GENERATE_MODELS));
+    boolean separateModelsAndApi = Boolean.TRUE.equals(additionalProperties.containsKey(SEPARATE_MODELS_AND_API));
     supportingFiles.add(new SupportingFile("index.mustache", "", "index.ts"));
-    supportingFiles.add(new SupportingFile("baseApi.mustache", "", "base.ts"));
-    supportingFiles.add(new SupportingFile("api.mustache", "", "api.ts"));
-    supportingFiles.add(new SupportingFile("configuration.mustache", "", "configuration.ts"));
+
+    if (generateApis) { // this obviates Axios completely
+      supportingFiles.add(new SupportingFile("baseApi.mustache", "", "base.ts"));
+      supportingFiles.add(new SupportingFile("configuration.mustache", "", "configuration.ts"));
+    }
+
+    if (!separateModelsAndApi) {
+      supportingFiles.add(new SupportingFile("api.mustache", "", "api.ts"));
+    }
+
     supportingFiles.add(new SupportingFile("git_push.sh.mustache", "", "git_push.sh"));
     supportingFiles.add(new SupportingFile("gitignore", "", ".gitignore"));
     supportingFiles.add(new SupportingFile("npmignore", "", ".npmignore"));
 
-    if (additionalProperties.containsKey(SEPARATE_MODELS_AND_API)) {
-      boolean separateModelsAndApi = Boolean.parseBoolean(additionalProperties.get(SEPARATE_MODELS_AND_API).toString());
-      if (separateModelsAndApi) {
-        if (StringUtils.isAnyBlank(modelPackage, apiPackage)) {
-          throw new RuntimeException("apiPackage and modelPackage must be defined");
-        }
-        modelTemplateFiles.put("model.mustache", ".ts");
+    if (separateModelsAndApi) {
+      if (StringUtils.isBlank(modelPackage) && generateModels) {
+        throw new RuntimeException("apiPackage and modelPackage must be defined");
+      }
+      if (StringUtils.isBlank(apiPackage) && generateApis) {
+        throw new RuntimeException("apiPackage and modelPackage must be defined");
+      }
+
+      if (generateApis) {
         apiTemplateFiles.put("apiInner.mustache", ".ts");
+        supportingFiles.add(new SupportingFile("apiIndex.mustache", tsApiPackage, "index.ts"));
+      }
+
+      if (generateModels) {
         supportingFiles.add(new SupportingFile("modelIndex.mustache", tsModelPackage, "index.ts"));
+        additionalProperties.put("apiModelRelativeToRoot", apiRelativeToRoot);
+      }
+
+      if (additionalProperties.containsKey(USE_ENHANCED_SERIALIZER)) {
+        if (generateModels) {
+          modelTemplateFiles.put("enhancedModel.mustache", ".ts");
+          supportingFiles.add(new SupportingFile("js_serializer.mustache", tsModelPackage, "model_serializer.ts"));
+        }
+      } else if (generateModels) {
+        modelTemplateFiles.put("model.mustache", ".ts");
       }
     }
-
-//    if (additionalProperties.containsKey(USE_ENHANCED_SERIALIZER)) {
-//
-//    }
 
     if (additionalProperties.containsKey(NPM_NAME)) {
       addNpmPackageGeneration();
@@ -163,6 +187,7 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
     }
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public Map<String, Object> postProcessOperationsWithModels(Map<String, Object> objs, List<Object> allModels) {
     objs = super.postProcessOperationsWithModels(objs, allModels);
@@ -177,7 +202,10 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
       .filter(op -> op.consumes.stream().anyMatch(opc -> opc.values().stream().anyMatch("multipart/form-data"::equals)))
       .forEach(op -> op.vendorExtensions.putIfAbsent("multipartFormData", true));
 
+    Set<String> initialImportedClasses;
+
     if (additionalProperties.containsKey(USE_ENHANCED_SERIALIZER)) {
+      initialImportedClasses = Collections.singleton("ObjectSerializer");
       operations.stream()
         .filter(op -> op.hasProduces)
         .forEach(op -> {
@@ -194,27 +222,56 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
             bp.vendorExtensions.put("x-ts-is-error", bp.is4xx || bp.is5xx);
           });
         });
+
       operations.stream()
         .filter(op -> op.hasConsumes)
         .filter(op -> op.bodyParam != null)
         .map(op -> op.bodyParam)
         .forEach(bp -> enhanceDataTarget(bp.dataType, bp.dataFormat, bp.vendorExtensions));
+    } else {
+      initialImportedClasses = new HashSet<>();
     }
+
+    // import the actual imported classes
+    Set<String> importedClasses = (Set<String>)additionalProperties.computeIfAbsent("x-ts-imported-classes-set",
+      (k) -> new HashSet<String>(initialImportedClasses));
+
+    ((List<Map<String, String>>)objs.get("imports")).forEach(i -> importedClasses.add(i.get("classname")));
+    additionalProperties.put("x-ts-imported-classes", String.join(", ", importedClasses));
+
+
     return objs;
   }
 
   @Override
   public Map<String, Object> postProcessAllModels(Map<String, Object> objs) {
     Map<String, Object> result = super.postProcessAllModels(objs);
+
+    Set<String> modelClassnames = new HashSet<>();
     for (Map.Entry<String, Object> entry : result.entrySet()) {
       Map<String, Object> inner = (Map<String, Object>) entry.getValue();
       List<Map<String, Object>> models = (List<Map<String, Object>>) inner.get("models");
       for (Map<String, Object> model : models) {
         CodegenModel codegenModel = (CodegenModel) model.get("model");
+        if (!("any".equals(codegenModel.dataType) && codegenModel.vars.size() == 0) && !"Date".equals(codegenModel.dataType) ) {
+          // classes that are "any" and have no values are just generic and they don't get generated by the
+          // generator, they stay tagged as "any". 
+          // Date types (format: date and format: date-time) are the same.
+          modelClassnames.add(codegenModel.classname);
+        }
         model.put("hasAllOf", codegenModel.allOf.size() > 0);
         model.put("hasOneOf", codegenModel.oneOf.size() > 0);
       }
     }
+
+    if (objs.size() > 0) {
+      additionalProperties.put("x-ts-has-models", "true");
+      additionalProperties.put("x-ts-all-models",
+        String.join(", ", modelClassnames));
+
+    }
+
+
     return result;
   }
 

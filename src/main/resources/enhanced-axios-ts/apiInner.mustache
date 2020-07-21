@@ -1,3 +1,4 @@
+{{#generateApis}}
 {{#withSeparateModelsAndApi}}
 /* tslint:disable */
 /* eslint-disable */
@@ -11,8 +12,12 @@ import { Configuration } from '{{apiRelativeToRoot}}configuration';
 import { BASE_PATH, COLLECTION_FORMATS, RequestArgs, BaseAPI, RequiredError } from '{{apiRelativeToRoot}}base';
 {{#imports}}
 // @ts-ignore
-import { {{classname}} } from '{{apiRelativeToRoot}}{{tsModelPackage}}';
+import { {{classname}} } from '{{apiModelRelativeToRoot}}{{{tsModelPackage}}}';
 {{/imports}}
+{{#useEnhancedSerializer}}
+// @ts-ignore
+import { ObjectSerializer } from '{{apiModelRelativeToRoot}}{{{tsModelPackage}}}';
+{{/useEnhancedSerializer}}
 {{/withSeparateModelsAndApi}}
 {{^withSeparateModelsAndApi}}
 {{/withSeparateModelsAndApi}}
@@ -401,3 +406,4 @@ export class {{classname}} extends BaseAPI {
     {{/operation}}
 }
 {{/operations}}
+{{/generateApis}}

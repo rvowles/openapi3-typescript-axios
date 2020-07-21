@@ -1,2 +1,5 @@
 {{#models}}{{#model}}export * from './{{classFilename}}';{{/model}}
 {{/models}}
+{{#useEnhancedSerializer}}
+export * from './model_serializer';
+{{/useEnhancedSerializer}}

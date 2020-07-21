@@ -1,4 +1,9 @@
+{{#withSeparateModelsAndApi}}
+  {{#x-ts-has-models}}
+import { {{{x-ts-all-models}}} } from './';
+  {{/x-ts-has-models}}
 
+{{/withSeparateModelsAndApi}}
 {{#models}}
 {{#hasOneOf}}
   {{#model}}

@@ -2,5 +2,17 @@
 /* eslint-disable */
 {{>licenseInfo}}
 
+{{^withSeparateModelsAndApi}}
 export * from "./api";
+{{/withSeparateModelsAndApi}}
+{{#withSeparateModelsAndApi}}
+  {{#generateApis}}
+export * from "./api";
+  {{/generateApis}}
+  {{#generateModels}}
+export * from './{{tsModelPackage}}';
+  {{/generateModels}}
+{{/withSeparateModelsAndApi}}
+{{#generateApis}}
 export * from "./configuration";
+{{/generateApis}}

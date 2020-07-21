@@ -3,13 +3,15 @@
 {{>licenseInfo}}
 
 {{^withSeparateModelsAndApi}}
+  {{#generateApis}}
 import * as globalImportUrl from 'url';
 import { Configuration } from './configuration';
 import globalAxios, { AxiosPromise, AxiosInstance } from 'axios';
 // Some imports not used depending on template conditions
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, RequestArgs, BaseAPI, RequiredError } from './base';
-
+  {{/generateApis}}
+{{#generateModels}}
 {{^useEnhancedSerializer}}
 {{#models}}
 {{#model}}{{#isEnum}}{{>modelEnum}}{{/isEnum}}{{#oneOf}}{{#-first}}{{>modelOneOf}}{{/-first}}{{/oneOf}}{{^isEnum}}{{^oneOf}}{{>modelGeneric}}{{/oneOf}}{{/isEnum}}{{/model}}
@@ -21,10 +23,19 @@ import { BASE_PATH, COLLECTION_FORMATS, RequestArgs, BaseAPI, RequiredError } fr
   {{/models}}
   {{>js_serializer}}
 {{/useEnhancedSerializer}}
+{{/generateModels}}
+{{^generateModels}}
+// @ts-ignore
+import { {{{x-ts-imported-classes}}} } from '{{{tsModelPackage}}}';
+{{/generateModels}}
+{{#generateApis}}
 {{#apiInfo}}{{#apis}}
 {{>apiInner}}
 {{/apis}}{{/apiInfo}}
+{{/generateApis}}
 {{/withSeparateModelsAndApi}}{{#withSeparateModelsAndApi}}
+{{#generateApis}}
 {{#apiInfo}}{{#apis}}{{#operations}}export * from './{{tsApiPackage}}/{{classFilename}}';
 {{/operations}}{{/apis}}{{/apiInfo}}
+{{/generateApis}}
 {{/withSeparateModelsAndApi}}
