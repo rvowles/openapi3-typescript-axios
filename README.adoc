@@ -39,7 +39,7 @@ We use an additional property to trigger the extensions so it remains backwards 
 existing code:
 
 ----
---additional-properties useEnhancedSerializer=true
+--additional-properties useEnhancedSerializer
 ----
 
 This property will give you back a pure AxiosResponse<T> or AxiosError<T> which will in fact not be deserialized. To do
@@ -49,7 +49,14 @@ object.
 If you wish to have it automatically deserialized, use
 
 ----
---additional-properties useCoalesceReturnTypes=true
+--additional-properties useCoalesceReturnTypes
+----
+
+If you wish to use optimized deserialization techniques for primitive data types and their arrays, add no extra
+options. If however you need to be able to intercept all deserialization, add in
+
+----
+--additional-properties useNonOptimalDeserialization
 ----
 
 And then your return types will be all of the possible return types from that method and it will check the status code

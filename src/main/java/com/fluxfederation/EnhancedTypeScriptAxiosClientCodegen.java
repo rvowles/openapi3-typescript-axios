@@ -9,12 +9,12 @@ import org.openapitools.codegen.CodegenModel;
 import org.openapitools.codegen.CodegenOperation;
 import org.openapitools.codegen.CodegenProperty;
 import org.openapitools.codegen.SupportingFile;
-import org.openapitools.codegen.config.GlobalSettings;
 import org.openapitools.codegen.languages.AbstractTypeScriptClientCodegen;
 import org.openapitools.codegen.meta.features.DocumentationFeature;
 import org.openapitools.codegen.utils.ModelUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,12 +33,18 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
   public static final String USE_SINGLE_REQUEST_PARAMETER = "useSingleRequestParameter";
   public static final String USE_ENHANCED_SERIALIZER = "useEnhancedSerializer";
   public static final String USE_COALESCE_RETURN_TYPES = "useCoalesceReturnTypes";
+  public static final String DEOPTIMIZE_DESERIALIZATION = "useNonOptimalDeserialization";
 
   public static final String TEMPLATE_FOLDER = "enhanced-axios-ts";
+  private static final String X_TS_DESERIALIZE_TYPE = "x-ts-deserialize-type";
+  private static final String X_TS_OPTIMIZE = "x-ts-optimize";
+  private static final String X_TS_RECORD_TYPE = "x-ts-record-type";
+  private static final String X_TS_ADDITIONAL_PROPS = "x-ts-additional-props";
 
   protected String npmRepository = null;
 
   private String tsModelPackage = "";
+  private boolean optimized = true;
 
   public EnhancedTypeScriptAxiosClientCodegen() {
     super();
@@ -66,6 +72,8 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
       "serialization and validation rules and it generates classes to match interfaces"));
     this.cliOptions.add(new CliOption(USE_COALESCE_RETURN_TYPES, "Make a function return all of the  types it " +
       "actually returns wrapped in an AxiosResponse."));
+    this.cliOptions.add(new CliOption(DEOPTIMIZE_DESERIALIZATION, "This allows you to force all deserialization and " +
+      "serialization through the ObjectSerializer"));
   }
 
   @Override
@@ -114,9 +122,10 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
     additionalProperties.put("apiRelativeToRoot", apiRelativeToRoot);
     additionalProperties.put("modelRelativeToRoot", modelRelativeToRoot);
 
-    boolean generateApis = Boolean.TRUE.equals(additionalProperties.get(CodegenConstants.GENERATE_APIS));
-    boolean generateModels = Boolean.TRUE.equals(additionalProperties.get(CodegenConstants.GENERATE_MODELS));
-    boolean separateModelsAndApi = Boolean.TRUE.equals(additionalProperties.containsKey(SEPARATE_MODELS_AND_API));
+    boolean generateApis = additionalProperties.containsKey(CodegenConstants.GENERATE_APIS);
+    boolean generateModels = additionalProperties.containsKey(CodegenConstants.GENERATE_MODELS);
+    boolean separateModelsAndApi = additionalProperties.containsKey(SEPARATE_MODELS_AND_API);
+    optimized = !additionalProperties.containsKey(DEOPTIMIZE_DESERIALIZATION);
     supportingFiles.add(new SupportingFile("index.mustache", "", "index.ts"));
 
     if (generateApis) { // this obviates Axios completely
@@ -166,24 +175,35 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
 
   }
 
+  // primitive types, anys and arrays of such as never deserialize, so may as well optiize them
+  private static final List<String> optimizeDataTypes =Arrays.asList("string", "int", "integer", "double", "float",
+    "num", "any",
+    "number", "boolean", "object", "Array<any>", "Array<object>", "Array<string>", "Array<int>", "Array<integer>",
+    "Array<double>", "Array<float>", "Array<num>", "Array<number>", "Array<boolean>");
   private void enhanceDataTarget(String dataType, String dataFormat, Map<String, Object> vendorExtensions) {
     if (dataType != null) {
       if ("string".equals(dataType.toLowerCase())) {
+        if (optimized) {
+          vendorExtensions.put(X_TS_OPTIMIZE, Boolean.TRUE);
+        }
         if (dataFormat == null) {
           vendorExtensions.put("x-ts-string-type", Boolean.TRUE);
-          vendorExtensions.put("x-ts-deserialize-type",  "string");
+          vendorExtensions.put(X_TS_DESERIALIZE_TYPE,  "string");
         } else {
-          vendorExtensions.put("x-ts-deserialize-type",  dataFormat);
+          vendorExtensions.put(X_TS_DESERIALIZE_TYPE,  dataFormat);
         }
       } else {
         if ("date".equals(dataType.toLowerCase())) {
-          vendorExtensions.put("x-ts-deserialize-type",  dataFormat);
+          vendorExtensions.put(X_TS_DESERIALIZE_TYPE,  dataFormat);
         } else {
-          vendorExtensions.put("x-ts-deserialize-type", dataType);
+          vendorExtensions.put(X_TS_DESERIALIZE_TYPE, dataType);
+        }
+        if (optimized && optimizeDataTypes.contains(dataType)) {
+          vendorExtensions.put(X_TS_OPTIMIZE, Boolean.TRUE);
         }
       }
     } else {
-      vendorExtensions.put("x-ts-deserialize-type", "object");
+      vendorExtensions.put(X_TS_DESERIALIZE_TYPE, "object");
     }
   }
 
@@ -284,22 +304,32 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
 
   private void postProcessCodegenProperty(CodegenProperty var) {
     if (var.dataType == null) {
-      var.vendorExtensions.put("x-ts-deserialize-type", "object");
+      var.vendorExtensions.put(X_TS_DESERIALIZE_TYPE, "object");
     } else {
       if (var.dataType.startsWith("{")) {
-        var.vendorExtensions.put("x-ts-record-type",  "Record<string, " + var.items.dataType + ">");
-        var.vendorExtensions.put("x-ts-additional-props", var.items.dataType);
+        var.vendorExtensions.put(X_TS_RECORD_TYPE,  "Record<string, " + var.items.dataType + ">");
+        var.vendorExtensions.put(X_TS_ADDITIONAL_PROPS, var.items.dataType);
+        if (optimized && optimizeDataTypes.contains(var.items.dataType)) {
+          var.vendorExtensions.put(X_TS_OPTIMIZE, Boolean.TRUE);
+        }
       } else if ("string".equals(var.dataType.toLowerCase())) {
+        if (optimized) {
+          var.vendorExtensions.put(X_TS_OPTIMIZE, Boolean.TRUE);
+        }
         if (var.dataFormat == null) {
-          var.vendorExtensions.put("x-ts-deserialize-type",  "string");
+          var.vendorExtensions.put(X_TS_DESERIALIZE_TYPE,  "string");
         } else {
-          var.vendorExtensions.put("x-ts-deserialize-type",  var.dataFormat);
+          var.vendorExtensions.put(X_TS_DESERIALIZE_TYPE,  var.dataFormat);
         }
       } else {
         if ("date".equals(var.dataType.toLowerCase())) {
-          var.vendorExtensions.put("x-ts-deserialize-type",  var.dataFormat);
+          var.vendorExtensions.put(X_TS_DESERIALIZE_TYPE,  var.dataFormat);
         } else {
-          var.vendorExtensions.put("x-ts-deserialize-type", var.dataType);
+          var.vendorExtensions.put(X_TS_DESERIALIZE_TYPE, var.dataType);
+          if (optimized && optimizeDataTypes.contains(var.dataType)) {
+            var.vendorExtensions.put(X_TS_OPTIMIZE, Boolean.TRUE);
+
+          }
         }
       }
     }

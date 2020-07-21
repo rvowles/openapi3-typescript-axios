@@ -58,20 +58,20 @@ class {{classname}}TypeTransformer {
       const p = {};
       for(let prop in val.{{{name}}}) {
         if (val.{{{name}}}.hasOwnProperty(prop)) {
-          p[prop] = ObjectSerializer.serialize(val.{{{name}}}[prop], '{{{vendorExtensions.x-ts-additional-props}}}');
+          p[prop] = {{#vendorExtensions.x-ts-optimize}}val.{{{name}}}[prop]{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.serialize(val.{{{name}}}[prop], '{{{vendorExtensions.x-ts-additional-props}}}'){{/vendorExtensions.x-ts-optimize}};
         }
         data['{{{baseName}}}'] = p;
       }
     {{/vendorExtensions.x-ts-additional-props}}
     {{^vendorExtensions.x-ts-additional-props}}
-      data['{{{baseName}}}'] = ObjectSerializer.serialize(val.{{{name}}}, '{{{vendorExtensions.x-ts-deserialize-type}}}');
+      data['{{{baseName}}}'] = {{#vendorExtensions.x-ts-optimize}}val.{{{name}}}{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.serialize(val.{{{name}}}, '{{{vendorExtensions.x-ts-deserialize-type}}}'){{/vendorExtensions.x-ts-optimize}};
     {{/vendorExtensions.x-ts-additional-props}}
     }
     {{/vars}}
     {{#additionalPropertiesType}}
     for(let prop in val) {
       if ({{classname}}TypeTransformer.otherProperties.indexOf(prop) === -1 && val.hasOwnProperty(prop)) {
-        data[prop] = ObjectSerializer.serialize(val[prop], '{{{additionalPropertiesType}}}');
+        data[prop] = {{#vendorExtensions.x-ts-optimize}}val[prop]{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.serialize(val[prop], '{{{additionalPropertiesType}}}'){{/vendorExtensions.x-ts-optimize}};
       }
     }
     {{/additionalPropertiesType}}
@@ -98,7 +98,7 @@ class {{classname}}TypeTransformer {
     const init = {
     {{#vars}}
       {{^vendorExtensions.x-ts-additional-props}}
-      {{name}}: ObjectSerializer.deserialize(val['{{{baseName}}}'], '{{{vendorExtensions.x-ts-deserialize-type}}}'),
+      {{name}}: {{#vendorExtensions.x-ts-optimize}}val['{{{baseName}}}']{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(val['{{{baseName}}}'], '{{{vendorExtensions.x-ts-deserialize-type}}}'){{/vendorExtensions.x-ts-optimize}},
       {{/vendorExtensions.x-ts-additional-props}}
     {{/vars}}
     };
@@ -109,7 +109,7 @@ class {{classname}}TypeTransformer {
       const valData = val['{{{baseName}}}'];
       for(let prop in valData) {
         if (valData.hasOwnProperty(prop)) {
-          data[prop] = ObjectSerializer.serialize(valData[prop], '{{{vendorExtensions.x-ts-additional-props}}}');
+          data[prop] = {{#vendorExtensions.x-ts-optimize}}val[prop];{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(valData[prop], '{{{vendorExtensions.x-ts-additional-props}}}');{{/vendorExtensions.x-ts-optimize}}
         }
       }
       init['{{{name}}}'] = data;
@@ -119,7 +119,7 @@ class {{classname}}TypeTransformer {
     {{#additionalPropertiesType}}
     for(let prop in val) {
       if ({{classname}}TypeTransformer.otherProperties.indexOf(prop) === -1 && val.hasOwnProperty(prop)) {
-        init[prop] = ObjectSerializer.deserialize(val[prop], '{{{additionalPropertiesType}}}');
+        init[prop] = {{#vendorExtensions.x-ts-optimize}}val[prop];{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(val[prop], '{{{additionalPropertiesType}}}');{{/vendorExtensions.x-ts-optimize}}
       }
     }
     {{/additionalPropertiesType}}
@@ -167,12 +167,13 @@ export class ObjectSerializer {
       case 'email':
       case 'uuid':
       case 'int':
+      case 'integer':
       case 'num':
       case 'number':
       case 'double':
       case 'float':
       case 'boolean':
-        return value;
+        return value; // probably should include Arrays as well
       case 'object':
         return value;
       case 'Date':
