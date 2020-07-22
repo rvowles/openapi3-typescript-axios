@@ -55,7 +55,7 @@ class {{classname}}TypeTransformer {
     {{#vars}}
     if (val.{{{name}}}) {
     {{#vendorExtensions.x-ts-additional-props}}
-      const p = {};
+      const p: any = {};
       for(let prop in val.{{{name}}}) {
         if (val.{{{name}}}.hasOwnProperty(prop)) {
           p[prop] = {{#vendorExtensions.x-ts-optimize}}val.{{{name}}}[prop]{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.serialize(val.{{{name}}}[prop], '{{{vendorExtensions.x-ts-additional-props}}}'){{/vendorExtensions.x-ts-optimize}};
@@ -95,7 +95,7 @@ class {{classname}}TypeTransformer {
     return undefined;
 {{/isEnum}}
 {{^isEnum}}
-    const init = {
+    const init: any = {
     {{#vars}}
       {{^vendorExtensions.x-ts-additional-props}}
       {{name}}: {{#vendorExtensions.x-ts-optimize}}val['{{{baseName}}}']{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(val['{{{baseName}}}'], '{{{vendorExtensions.x-ts-deserialize-type}}}'){{/vendorExtensions.x-ts-optimize}},
@@ -105,7 +105,7 @@ class {{classname}}TypeTransformer {
     {{#vars}}
     {{#vendorExtensions.x-ts-additional-props}}
     if (val['{{{baseName}}}']) {
-      const data = {};
+      const data: any = {};
       const valData = val['{{{baseName}}}'];
       for(let prop in valData) {
         if (valData.hasOwnProperty(prop)) {
@@ -133,120 +133,136 @@ class {{classname}}TypeTransformer {
 
 
 const _regList = new RegExp('^Array\\<(.*)\\>$');
+const _regSet = new RegExp('^Set\\<(.*)\\>$');
 const _regMap = new RegExp('^Map\\<string,(.*)\\>$');
 
-// allow user to bolt in any kind of alternative deserialization, e.g. for uuids for similar
-export interface ExternalSerializer {
-  parseMatch(type: string, value: any): boolean;
+const _baseEncoder = (type: string, value: any) => value;
+const _dateEncoder = (type: string, value: any) => {
+  const val = value as Date;
+  return `${val.getFullYear()}-${val.getMonth()}-${val.getDay()}`;
+};
 
-  // will always be a value, not null or undefined
-  parse(type: string, value: any): any;
+export declare type EncoderFunc = (type: string, value: any) => any;
 
-  encodeMatch(type: string, value: any): boolean;
+export const serializers: Record<string, EncoderFunc> = {
+  'string': _baseEncoder,
+  'String': _baseEncoder,
+  'email': _baseEncoder,
+  'uuid': _baseEncoder,
+  'int': _baseEncoder,
+  'num': _baseEncoder,
+  'number': _baseEncoder,
+  'double': _baseEncoder,
+  'float': _baseEncoder,
+  'boolean': _baseEncoder,
+  'object': _baseEncoder,
+  'any': _baseEncoder,
+  'Array<string>': _baseEncoder,
+  'Array<String>': _baseEncoder,
+  'Array<email>': _baseEncoder,
+  'Array<int>': _baseEncoder,
+  'Array<num>': _baseEncoder,
+  'Array<number>': _baseEncoder,
+  'Array<double>': _baseEncoder,
+  'Array<float>': _baseEncoder,
+  'Array<boolean>': _baseEncoder,
+  'Array<object>': _baseEncoder,
+  'Array<any>': _baseEncoder, 
+  'Set<string>': _baseEncoder,
+  'Set<String>': _baseEncoder,
+  'Set<email>': _baseEncoder,
+  'Set<int>': _baseEncoder,
+  'Set<num>': _baseEncoder,
+  'Set<number>': _baseEncoder,
+  'Set<double>': _baseEncoder,
+  'Set<float>': _baseEncoder,
+  'Set<boolean>': _baseEncoder,
+  'Set<object>': _baseEncoder,
+  'Set<any>': _baseEncoder,
+  'Date': _dateEncoder,
+  'DateTime': (t, value) => (value as Date).toISOString(),
+ {{#models}}
+  {{#model}}
+  '{{classname}}': (t, value) => {{classname}}TypeTransformer.toJson(value),
+  {{/model}}
+{{/models}}
+};
 
-  // will always be a value, not null or undefined
-  encode(type :string, value: any): any;
-}
+const _stringDecoder = (type: string, value: any) => value.toString();
+const _passthroughDecoder = (type: string, value: any) => value;
+const _intDecoder = (type: string, value: any) => (value instanceof Number) ? value.toFixed() : parseInt(value.toString());
+const _numDecoder = (type: string, value: any) => (value instanceof Number) ? value : parseFloat(value.toString());
+const _dateDecoder = (type: string, value: any) => new Date(`${value}T00:00:00Z`);
+const _dateTimeDecoder = (type: string, value: any) => new Date(value.toString());
+
+
+export const deserializers: Record<string, EncoderFunc> = {
+  'string': _stringDecoder,
+  'String': _stringDecoder,
+  'email': _stringDecoder,
+  'uuid': _stringDecoder,
+  'int': _intDecoder,
+  'num': _numDecoder,
+  'number': _numDecoder,
+  'double': _numDecoder,
+  'float': _numDecoder,
+  'boolean': _passthroughDecoder,
+  'object': _passthroughDecoder,
+  'any': _passthroughDecoder,
+  'Date': _dateDecoder,
+  'DateTime': _dateTimeDecoder,
+ {{#models}}
+  {{#model}}
+  '{{classname}}': (t, value) => {{classname}}TypeTransformer.fromJson(value),
+  {{/model}}
+{{/models}}
+};
+
 
 export class ObjectSerializer {
-  public static extraSerializers: Array<ExternalSerializer> = [];
   public static serialize(value: any, targetType: string): any {
     if (value === null || value === undefined) {
       return undefined;
     }
 
-    for(let val of ObjectSerializer.extraSerializers) {
-      if (val.encodeMatch(targetType, value)) {
-        return val.encode(targetType, value);
-      }
+    const encoder = serializers[targetType];
+    if (encoder) {
+      return encoder(targetType, value);
     }
 
-     switch (targetType) {
-      case 'String':
-      case 'string':
-      case 'email':
-      case 'uuid':
-      case 'int':
-      case 'integer':
-      case 'num':
-      case 'number':
-      case 'double':
-      case 'float':
-      case 'boolean':
-        return value; // probably should include Arrays as well
-      case 'object':
-        return value;
-      case 'Date':
-        const val = value as Date;
-        return `${val.getFullYear}-${val.getMonth()}-${val.getDay()}`;
-      case 'DateTime':
-        return (value as Date).toISOString();
-{{#models}}
-  {{#model}}
-      case '{{classname}}':
-        return {{classname}}TypeTransformer.toJson(value);
-  {{/model}}
-{{/models}}
-      default:
-        var match;
-        if ((value instanceof Array) &&
-            ((match = targetType.match(_regList)[1]) !== undefined)) {
-          return [...value.map((v) => ObjectSerializer.serialize(v, match))];
-        } else if (value instanceof Map && ((match = targetType.match(_regMap)[1]) !== undefined)) {
-          return new Map(Array.from(value, ([k, v]) => [k, ObjectSerializer.serialize(v, match)]));
-        }
-    } // switch
+    var match: any;
+    if ((value instanceof Array) &&
+        ((match = targetType.match(_regList)[1]) !== undefined)) {
+      return [...value.map((v) => ObjectSerializer.serialize(v, match))];
+    } else if ((value instanceof Set) &&
+    ((match = targetType.match(_regList)[1]) !== undefined)) {
+      return [...Array.from(value).map((v) => ObjectSerializer.serialize(v, match))];
+    } else if (value instanceof Map && ((match = targetType.match(_regMap)[1]) !== undefined)) {
+      return new Map(Array.from(value, ([k, v]) => [k, ObjectSerializer.serialize(v, match)]));
+    }
 
     return undefined;
   }
 
   public static deserialize(value: any, targetType: string): any {
     if (value === null || value === undefined) return null; // 204
-    if (targetType === null || value === undefined) return value.toString(); // best guess
+    if (targetType === null || targetType === undefined) return value.toString(); // best guess
 
-    // let the externals have their go first
-    for(let val of ObjectSerializer.extraSerializers) {
-      if (val.parseMatch(targetType, value)) {
-        return val.parse(targetType, value);
-      }
+    const decoder = serializers[targetType];
+    if (decoder) {
+      return decoder(targetType, value);
     }
 
-    switch (targetType) {
-      case 'String':
-      case 'string':
-      case 'email':
-      case 'uuid':
-        return value.toString();
-      case 'int':
-         return value instanceof Number ? value : parseInt(value.toString());
-      case 'num':
-      case 'number':
-      case 'double':
-      case 'float':
-        return value instanceof Number ? value : parseFloat(value.toString());
-      case 'boolean':
-        return value instanceof Boolean ? value : value.toString().toLowerCase() == 'true';
-      case 'object':
-        return value;
-      case 'Date':
-        return new Date(`${value}T00:00:00Z`);
-      case 'DateTime':
-        return new Date(value.toString());
-{{#models}}
-  {{#model}}
-      case '{{classname}}':
-        return {{classname}}TypeTransformer.fromJson(value);
-  {{/model}}
-{{/models}}
-      default:
-        var match;
-        if ((value instanceof Array) &&
-            ((match = targetType.match(_regList)[1]) !== undefined)) {
-          return [...value.map((v) => ObjectSerializer.deserialize(v, match))];
-        } else if (value instanceof Map && ((match = targetType.match(_regMap)[1]) !== undefined)) {
-          return new Map(Array.from(value, ([k, v]) => [k, ObjectSerializer.deserialize(v, match)]));
-        }
-    } // switch
+    var match: any;
+    if ((value instanceof Array) &&
+        ((match = targetType.match(_regList)[1]) !== undefined)) {
+      return [...value.map((v) => ObjectSerializer.deserialize(v, match))];
+    } else if ((value instanceof Set) &&
+        ((match = targetType.match(_regList)[1]) !== undefined)) {
+      return [...Array.from(value).map((v) => ObjectSerializer.deserialize(v, match))];
+    } else if (value instanceof Map && ((match = targetType.match(_regMap)[1]) !== undefined)) {
+      return new Map(Array.from(value, ([k, v]) => [k, ObjectSerializer.deserialize(v, match)]));
+    }
 
     return value;
   } // deserialize

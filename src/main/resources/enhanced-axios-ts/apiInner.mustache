@@ -115,7 +115,7 @@ export const {{classname}}AxiosParamCreator = function (configuration?: Configur
                 localVarQueryParameter['{{baseName}}'] = {{paramName}};
             {{/isCollectionFormatMulti}}
             {{^isCollectionFormatMulti}}
-                localVarQueryParameter['{{baseName}}'] = {{paramName}}.join(COLLECTION_FORMATS.{{collectionFormat}});
+                localVarQueryParameter['{{baseName}}'] = {{#uniqueItems}}Array.from({{/uniqueItems}}{{paramName}}{{#uniqueItems}}){{/uniqueItems}}.join(COLLECTION_FORMATS.{{collectionFormat}});
             {{/isCollectionFormatMulti}}
             }
             {{/isListContainer}}
@@ -169,8 +169,8 @@ export const {{classname}}AxiosParamCreator = function (configuration?: Configur
                 })
             {{/isCollectionFormatMulti}}
             {{^isCollectionFormatMulti}}{{^multipartFormData}}
-                localVarFormParams.set('{{baseName}}', {{paramName}}.join(COLLECTION_FORMATS.{{collectionFormat}}));{{/multipartFormData}}{{#multipartFormData}}
-                localVarFormParams.append('{{baseName}}', {{paramName}}.join(COLLECTION_FORMATS.{{collectionFormat}}));{{/multipartFormData}}
+                localVarFormParams.set('{{baseName}}', {{#uniqueItems}}Array.from({{/uniqueItems}}{{paramName}}{{#uniqueItems}}){{/uniqueItems}}.join(COLLECTION_FORMATS.{{collectionFormat}}));{{/multipartFormData}}{{#multipartFormData}}
+                localVarFormParams.append('{{baseName}}', {{#uniqueItems}}Array.from({{/uniqueItems}}{{paramName}}{{#uniqueItems}}){{/uniqueItems}}.join(COLLECTION_FORMATS.{{collectionFormat}}));{{/multipartFormData}}
             {{/isCollectionFormatMulti}}
             }{{/isListContainer}}
             {{^isListContainer}}
@@ -204,7 +204,7 @@ export const {{classname}}AxiosParamCreator = function (configuration?: Configur
     {{#bodyParam}}
             const needsSerialization = (typeof {{paramName}} !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
       {{^useEnhancedSerializer}}
-            localVarRequestOptions.data =  needsSerialization ? JSON.stringify({{paramName}} !== undefined ? {{paramName}} : {}) : ({{paramName}} || "");
+          localVarRequestOptions.data =  needsSerialization ? JSON.stringify({{paramName}} !== undefined ? {{#uniqueItems}}Array.from({{/uniqueItems}}{{paramName}}{{#uniqueItems}}){{/uniqueItems}} : {{#uniqueItems}}[]{{/uniqueItems}}{{^uniqueItems}}{}}{{/uniqueItems}}) : ({{paramName}} || "");
       {{/useEnhancedSerializer}}
       {{#useEnhancedSerializer}}
             localVarRequestOptions.data =  needsSerialization ? JSON.stringify({{paramName}} !== undefined ? ObjectSerializer.serialize({{paramName}}, '{{{vendorExtensions.x-ts-deserialize-type}}}') : {}) : ({{paramName}} || "");

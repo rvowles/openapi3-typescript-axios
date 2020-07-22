@@ -178,8 +178,12 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
   // primitive types, anys and arrays of such as never deserialize, so may as well optiize them
   private static final List<String> optimizeDataTypes =Arrays.asList("string", "int", "integer", "double", "float",
     "num", "any",
-    "number", "boolean", "object", "Array<any>", "Array<object>", "Array<string>", "Array<int>", "Array<integer>",
-    "Array<double>", "Array<float>", "Array<num>", "Array<number>", "Array<boolean>");
+    "number", "boolean", "object",
+    "Array<any>", "Array<object>", "Array<string>", "Array<int>", "Array<integer>",
+    "Array<any>", "Array<object>", "Array<string>", "Array<int>", "Array<integer>",
+    "Set<double>", "Set<float>", "Set<num>", "Set<number>", "Set<boolean>",
+    "Set<double>", "Set<float>", "Set<num>", "Set<number>", "Set<boolean>"
+    );
   private void enhanceDataTarget(String dataType, String dataFormat, Map<String, Object> vendorExtensions) {
     if (dataType != null) {
       if ("string".equals(dataType.toLowerCase())) {
@@ -240,6 +244,9 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
           op.responses.forEach(bp -> {
             enhanceDataTarget(bp.dataType, null, bp.vendorExtensions);
             bp.vendorExtensions.put("x-ts-is-error", bp.is4xx || bp.is5xx);
+            if (bp.dataType != null && "Set<".startsWith(bp.dataType)) {
+              bp.setUniqueItems(true);
+            }
           });
         });
 
@@ -247,7 +254,21 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
         .filter(op -> op.hasConsumes)
         .filter(op -> op.bodyParam != null)
         .map(op -> op.bodyParam)
-        .forEach(bp -> enhanceDataTarget(bp.dataType, bp.dataFormat, bp.vendorExtensions));
+        .forEach(bp -> {
+          enhanceDataTarget(bp.dataType, bp.dataFormat, bp.vendorExtensions);
+          if (bp.dataType != null && "Set<".startsWith(bp.dataType)) {
+            bp.uniqueItems = true;
+          }
+        });
+
+      operations.stream()
+        .filter(CodegenOperation::getHasFormParams)
+        .forEach(op -> {
+          // correct the unique items
+          op.formParams.stream().filter(p -> p.dataType != null && p.dataType.startsWith("Set<")).forEach(p -> {
+            p.uniqueItems = true;
+          });
+        } );
     } else {
       initialImportedClasses = new HashSet<>();
     }
@@ -255,6 +276,7 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
     // import the actual imported classes
     Set<String> importedClasses = (Set<String>)additionalProperties.computeIfAbsent("x-ts-imported-classes-set",
       (k) -> new HashSet<String>(initialImportedClasses));
+
 
     ((List<Map<String, String>>)objs.get("imports")).forEach(i -> importedClasses.add(i.get("classname")));
     additionalProperties.put("x-ts-imported-classes", String.join(", ", importedClasses));
@@ -298,7 +320,7 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
 
   @Override
   protected void addAdditionPropertiesToCodeGenModel(CodegenModel codegenModel, Schema schema) {
-    codegenModel.additionalPropertiesType = getTypeDeclaration(ModelUtils.getAdditionalProperties(schema));
+    codegenModel.additionalPropertiesType = getTypeDeclaration(ModelUtils.getAdditionalProperties(openAPI, schema));
     addImport(codegenModel, codegenModel.additionalPropertiesType);
   }
 
@@ -380,8 +402,17 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
       }
     }
 
+    final List<Map<String, String>> imports = (List<Map<String, String>>) objs.get("imports");
+
+    if (modelPackage != null) {
+      String searchingFor = modelPackage + ".Set";
+      // remove the Set class from the imports as it is already in the std library
+      (new ArrayList<>(imports)).stream().filter(i -> searchingFor.equals(i.get("import"))).findFirst().ifPresent(imports::remove);
+    }
+
+
     // Apply the model file name to the imports as well
-    for (Map<String, String> m : (List<Map<String, String>>) objs.get("imports")) {
+    for (Map<String, String> m : imports) {
       String javaImport = m.get("import").substring(modelPackage.length() + 1);
       String tsImport = tsModelPackage + "/" + javaImport;
       m.put("tsImport", tsImport);

@@ -34,7 +34,7 @@
 	</scm>
 
 	<properties>
-		<openapi-codegen-version>4.3.1</openapi-codegen-version>
+		<openapi-codegen-version>5.0.0-SNAPSHOT</openapi-codegen-version>
 	</properties>
 
 	<prerequisites>
@@ -67,6 +67,17 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>oss-sonatype</id>
+			<name>oss-sonatype</name>
+			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 
 	<build>
 		<plugins>

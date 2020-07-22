@@ -4,6 +4,48 @@ info:
   description: Sample API for test case for k8s
   version: "1.1.1"
 paths:
+  /api/v1/test:
+    get:
+      operationId: getTest
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TestDTO"
+    post:
+      operationId: postTest1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/TestDTO"
+      responses:
+        "200":
+          description: "upcoming events"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventResponse"
+  /api/v1/test2:
+    put:
+      operationId: getTest2
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                uniqueItems: true
+                type: array
+                items:
+                  $ref: "#/components/schemas/TestDTO"
   /event/upcoming:
     post:
       tags:
@@ -205,6 +247,11 @@ components:
           type: string
         imageUrl:
           type: string
+        someUniqueSet:
+          uniqueItems: true
+          type: array
+          items:
+            type: number
     EventStatus:
       type: string
       enum:
@@ -270,6 +317,7 @@ components:
           type: object
           additionalProperties:
             type: array
+            uniqueItems: true
             items:
               $ref: "#/components/schemas/TimeType"
         dependencies:
@@ -326,6 +374,7 @@ components:
           type: string
     UniqueEventRequest:
       type: array
+      uniqueItems: true
       items:
         $ref: "#/components/schemas/UniqueEvent"
     UniqueEvent:
@@ -364,4 +413,17 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/JSONType"
-
+    TestDTO:
+      type: object
+      properties:
+        uniqueItemList:
+          uniqueItems: true
+          type: array
+          items:
+            type: integer
+            format: int64
+        itemList:
+          type: array
+          items:
+            type: integer
+            format: int64
