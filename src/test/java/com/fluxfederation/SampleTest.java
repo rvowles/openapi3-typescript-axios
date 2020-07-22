@@ -22,20 +22,20 @@ public class SampleTest {
       .toArray(new String[0]));
   }
 
-  // https://esi.evetech.net/_latest/swagger.json
-  @Test
-  public void runGeneratorOnEsiApi() {
-    String location = getClass().getResource("/esi.evetech.net.swagger.json").getFile();
-    OpenAPIGenerator.main(Arrays.asList("generate",
-      "--input-spec", location,
-      "--generator-name", "typescript-axios-enhanced",
+//  // https://esi.evetech.net/_latest/swagger.json
+//  @Test
+//  public void runGeneratorOnEsiApi() {
+//    String location = getClass().getResource("/esi.evetech.net.swagger.json").getFile();
+//    OpenAPIGenerator.main(Arrays.asList("generate",
+//      "--input-spec", location,
+//      "--generator-name", "typescript-axios-enhanced",
 //      "--additional-properties", "useEnhancedSerializer",
 //      "--additional-properties", "useCoalesceReturnTypes",
-      "--additional-properties", "npmName=eveTech",
-      "--additional-properties", "withSeparateModelsAndApi=true",
-      "--api-package", "api",
-      "--model-package", "model",
-      "--output", "target/evetech")
-      .toArray(new String[0]));
-  }
+//      "--additional-properties", "npmName=eveTech",
+//      "--additional-properties", "withSeparateModelsAndApi=true",
+//      "--api-package", "api",
+//      "--model-package", "model",
+//      "--output", "target/evetech")
+//      .toArray(new String[0]));
+//  }
 }
