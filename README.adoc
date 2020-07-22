@@ -13,6 +13,8 @@ raised around its:
   swapping back and forth between the two (e.g. `snake_case` -> `snakeCase`, `@id` -> `_id`)
 - incomplete types when multiple return codes exist and support different return objects
 - support oneOf's and discriminators
+- OpenAPI 5.x brings the Set<> type to the party and it does not work at all as expected. We recommend
+you use the `useEnhancedSerializer` mechanism for this otherwise stuff just isn't going to work.
 
 At the moment it is generating "correct" code, and the serialization works for simple types and is tested with those
 types. It needs more exhaustive testing around:
