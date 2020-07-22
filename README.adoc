@@ -70,7 +70,8 @@ NOTE: the type of generator is currently  `typescript-axios-enhanced`.
 java -cp "openapi-generator-cli-5.0.0-SNAPSHOT.jar:openapi-tsaxios-generator-1.1-SNAPSHOT.jar" org.openapitools.codegen.OpenAPIGenerator generate -i api.yaml -g typescript-axios-enhanced --additional-properties supportsES6 --additional-properties nullSafeAdditionalProps --additional-properties useEnhancedSerializer=true -o api
 ----
 
-** As we are currently using the 5.0.0-SNAPSHOT because  the API changed a bit, getting the snapshot jar is a little more tricky.
+==== Getting OpenAPI 5 SNAPSHOT
+As we are currently using the 5.0.0-SNAPSHOT because  the API changed a bit, getting the snapshot jar is a little more tricky.
 You need to download the Maven metadata file from https://oss.sonatype.org/content/repositories/snapshots/org/openapitools/openapi-generator/5.0.0-SNAPSHOT/maven-metadata.xml[here] .
 Once you have done this, you will find references to the current releases in a format similar to below. Find the `value` reference and that
 is the jar filename. Then you can grab this from the reference https://oss.sonatype.org/content/repositories/snapshots/org/openapitools/openapi-generator/5.0.0-SNAPSHOT/openapi-generator-maven-plugin-VALUE.jar
