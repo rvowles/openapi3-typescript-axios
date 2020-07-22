@@ -1,0 +1,10 @@
+{{^vendorExtensions.hasInterfaceModels}}
+{{#vars}}
+  {{^vendorExtensions.x-ts-additional-props}}
+    {{name}}: {{#vendorExtensions.x-ts-optimize}}__val['{{{baseName}}}']{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(__val['{{{baseName}}}'], '{{{vendorExtensions.x-ts-deserialize-type}}}'){{/vendorExtensions.x-ts-optimize}},
+  {{/vendorExtensions.x-ts-additional-props}}
+{{/vars}}
+{{/vendorExtensions.hasInterfaceModels}}{{#interfaceModels}}
+  {{^vendorExtensions.hasInterfaceModels}}// inherited fields from {{{classname}}}{{/vendorExtensions.hasInterfaceModels}}
+  {{>enhancedModelInnerFromJson}}
+{{/interfaceModels}}

@@ -303,6 +303,8 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
         }
         model.put("hasAllOf", codegenModel.allOf.size() > 0);
         model.put("hasOneOf", codegenModel.oneOf.size() > 0);
+        codegenModel.vendorExtensions.put("hasInterfaceModels", (codegenModel.interfaceModels != null && codegenModel.interfaceModels.size() > 0));
+        model.put("usesDiscriminator", codegenModel.oneOf.size() > 0 || codegenModel.discriminator != null);
       }
     }
 
@@ -324,13 +326,15 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
     addImport(codegenModel, codegenModel.additionalPropertiesType);
   }
 
-  private void postProcessCodegenProperty(CodegenProperty var) {
+  private void postProcessCodegenProperty(CodegenProperty var, CodegenModel cm) {
     if (var.dataType == null) {
       var.vendorExtensions.put(X_TS_DESERIALIZE_TYPE, "object");
     } else {
       if (var.dataType.startsWith("{")) {
         var.vendorExtensions.put(X_TS_RECORD_TYPE,  "Record<string, " + var.items.dataType + ">");
         var.vendorExtensions.put(X_TS_ADDITIONAL_PROPS, var.items.dataType);
+        cm.vendorExtensions.put(X_TS_ADDITIONAL_PROPS, Boolean.TRUE);
+
         if (optimized && optimizeDataTypes.contains(var.items.dataType)) {
           var.vendorExtensions.put(X_TS_OPTIMIZE, Boolean.TRUE);
         }
@@ -371,13 +375,16 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
       Map<String, Object> mo = (Map<String, Object>) _mo;
       CodegenModel cm = (CodegenModel) mo.get("model");
 
+      // tell this specific model it has no additional props fields by default. Inherited models may be different
+      cm.vendorExtensions.put(X_TS_ADDITIONAL_PROPS, Boolean.FALSE);
+
       // Deduce the model file name in kebab case
       cm.classFilename = cm.classname.replaceAll("([a-z0-9])([A-Z])", "$1-$2").toLowerCase(Locale.ROOT);
 
 
       if (additionalProperties.containsKey(USE_ENHANCED_SERIALIZER)) {
         for (CodegenProperty var : cm.vars) {
-          postProcessCodegenProperty(var);
+          postProcessCodegenProperty(var, cm);
         }
       }
 

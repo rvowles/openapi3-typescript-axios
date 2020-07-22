@@ -5,10 +5,11 @@ import { {{{x-ts-all-models}}} } from './';
 
 {{/withSeparateModelsAndApi}}
 {{#models}}
-{{#hasOneOf}}
+{{#usesDiscriminator}}
   {{#model}}
 class {{classname}}TypeTransformer {
   static toJson(val: {{classname}}): any {
+
     switch(val['{{{discriminator.propertyName}}}']) {
       {{#discriminator.mappedModels}}
       case '{{{mappingName}}}':
@@ -23,67 +24,46 @@ class {{classname}}TypeTransformer {
     }
   }
 
-  static fromJson(val: any): {{classname}} {
-    switch(val['{{{discriminator.propertyName}}}']) {
+  static fromJson(__val: any): {{classname}} {
+    switch(__val['{{{discriminator.propertyBaseName}}}']) {
 {{#discriminator.mappedModels}}
         case '{{{mappingName}}}':
-          return ObjectSerializer.deserialize(val, '{{{modelName}}}');
+          return ObjectSerializer.deserialize(__val, '{{{modelName}}}');
 {{/discriminator.mappedModels}}
       {{#oneOf}}
         case '{{{.}}}':
-          return ObjectSerializer.deserialize(val, '{{{.}}}');
+          return ObjectSerializer.deserialize(__val, '{{{.}}}');
       {{/oneOf}}
       default:
-        return val;
+        return __val;
     }
   }
 }
     {{/model}}
-{{/hasOneOf}}
-{{^hasOneOf}}
+{{/usesDiscriminator}}
+{{^usesDiscriminator}}
   {{#model}}
+
 class {{classname}}TypeTransformer {
 {{#additionalPropertiesType}}
   private static otherProperties = [{{#vars}}'{{{name}}}', {{/vars}}];
 {{/additionalPropertiesType}}
-  static toJson(val: {{classname}}): any {
+  static toJson(__val: {{classname}}): any {
 {{#isEnum}}
-    return val?.toString();
+    return __val?.toString();
 {{/isEnum}}
 {{^isEnum}}
-    const data: any = {};
-    {{#vars}}
-    if (val.{{{name}}}) {
-    {{#vendorExtensions.x-ts-additional-props}}
-      const p: any = {};
-      for(let prop in val.{{{name}}}) {
-        if (val.{{{name}}}.hasOwnProperty(prop)) {
-          p[prop] = {{#vendorExtensions.x-ts-optimize}}val.{{{name}}}[prop]{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.serialize(val.{{{name}}}[prop], '{{{vendorExtensions.x-ts-additional-props}}}'){{/vendorExtensions.x-ts-optimize}};
-        }
-        data['{{{baseName}}}'] = p;
-      }
-    {{/vendorExtensions.x-ts-additional-props}}
-    {{^vendorExtensions.x-ts-additional-props}}
-      data['{{{baseName}}}'] = {{#vendorExtensions.x-ts-optimize}}val.{{{name}}}{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.serialize(val.{{{name}}}, '{{{vendorExtensions.x-ts-deserialize-type}}}'){{/vendorExtensions.x-ts-optimize}};
-    {{/vendorExtensions.x-ts-additional-props}}
-    }
-    {{/vars}}
-    {{#additionalPropertiesType}}
-    for(let prop in val) {
-      if ({{classname}}TypeTransformer.otherProperties.indexOf(prop) === -1 && val.hasOwnProperty(prop)) {
-        data[prop] = {{#vendorExtensions.x-ts-optimize}}val[prop]{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.serialize(val[prop], '{{{additionalPropertiesType}}}'){{/vendorExtensions.x-ts-optimize}};
-      }
-    }
-    {{/additionalPropertiesType}}
-    return data;
+    const __data: any = {};
+    {{>enhancedModelInnerToJson}}
+    return __data;
 {{/isEnum}}
   }
 
   // expect this to be a decoded value
-  static fromJson(val: any): {{classname}} {
+  static fromJson(__val: any): {{classname}} {
 {{#isEnum}}
-    if (val === null || val === undefined) return undefined;
-    switch (val.toString()) {
+    if (__val === null || __val === undefined) return undefined;
+    switch (__val.toString()) {
     {{#allowableValues}}
       {{#enumVars}}
         case {{{value}}}:
@@ -95,40 +75,23 @@ class {{classname}}TypeTransformer {
     return undefined;
 {{/isEnum}}
 {{^isEnum}}
-    const init: any = {
-    {{#vars}}
-      {{^vendorExtensions.x-ts-additional-props}}
-      {{name}}: {{#vendorExtensions.x-ts-optimize}}val['{{{baseName}}}']{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(val['{{{baseName}}}'], '{{{vendorExtensions.x-ts-deserialize-type}}}'){{/vendorExtensions.x-ts-optimize}},
-      {{/vendorExtensions.x-ts-additional-props}}
-    {{/vars}}
+    const __init: any = {
+      {{>enhancedModelInnerFromJson}}
     };
-    {{#vars}}
-    {{#vendorExtensions.x-ts-additional-props}}
-    if (val['{{{baseName}}}']) {
-      const data: any = {};
-      const valData = val['{{{baseName}}}'];
-      for(let prop in valData) {
-        if (valData.hasOwnProperty(prop)) {
-          data[prop] = {{#vendorExtensions.x-ts-optimize}}val[prop];{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(valData[prop], '{{{vendorExtensions.x-ts-additional-props}}}');{{/vendorExtensions.x-ts-optimize}}
-        }
-      }
-      init['{{{name}}}'] = data;
-    }
-    {{/vendorExtensions.x-ts-additional-props}}
-    {{/vars}}
+    {{>enhancedModelInnerFromJsonProps}}
     {{#additionalPropertiesType}}
-    for(let prop in val) {
-      if ({{classname}}TypeTransformer.otherProperties.indexOf(prop) === -1 && val.hasOwnProperty(prop)) {
-        init[prop] = {{#vendorExtensions.x-ts-optimize}}val[prop];{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(val[prop], '{{{additionalPropertiesType}}}');{{/vendorExtensions.x-ts-optimize}}
+    for(let prop in __val) {
+      if ({{classname}}TypeTransformer.otherProperties.indexOf(prop) === -1 && __val.hasOwnProperty(prop)) {
+        __init[prop] = {{#vendorExtensions.x-ts-optimize}}__val[prop];{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(__val[prop], '{{{additionalPropertiesType}}}');{{/vendorExtensions.x-ts-optimize}}
       }
     }
     {{/additionalPropertiesType}}
-    return new {{classname}}(init);
+    return new {{classname}}(__init);
 {{/isEnum}}
   }
 }
   {{/model}}
-{{/hasOneOf}}
+{{/usesDiscriminator}}
 {{/models}}
 
 

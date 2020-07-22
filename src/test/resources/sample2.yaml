@@ -7,6 +7,8 @@ paths:
   /api/v1/test:
     get:
       operationId: getTest
+      tags:
+        - InheritanceService
       responses:
         "200":
           description: OK
@@ -18,6 +20,8 @@ paths:
                   $ref: "#/components/schemas/TestDTO"
     post:
       operationId: postTest1
+      tags:
+        - InheritanceService
       requestBody:
         required: true
         content:
@@ -32,10 +36,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EventResponse"
+                $ref: "#/components/schemas/AeItemVO"
   /api/v1/test2:
     put:
       operationId: getTest2
+      tags:
+        - InheritanceService
       responses:
         "200":
           description: OK
@@ -427,3 +433,48 @@ components:
           items:
             type: integer
             format: int64
+    AeItemVO:
+      required:
+        - itemTypeId
+        - textValue
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        uuid:
+          type: string
+        itemTypeId:
+          type: integer
+          format: int32
+        itemSpecId:
+          type: integer
+          format: int32
+        textValue:
+          type: string
+        '@class':
+          type: string
+      discriminator:
+        propertyName: '@class'
+        mapping:
+          AeItemInteger: '#/components/schemas/AeItemIntegerVO'
+          AeItemString: '#/components/schemas/AeItemStringVO'
+    AeItemIntegerVO:
+      allOf:
+        - $ref: '#/components/schemas/AeItemVO'
+        - type: object
+          properties:
+            value:
+              type: integer
+              format: int32
+          required:
+            - value
+    AeItemStringVO:
+      allOf:
+        - $ref: '#/components/schemas/AeItemVO'
+        - type: object
+          properties:
+            value:
+              type: string
+          required:
+            - value

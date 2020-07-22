@@ -1,0 +1,21 @@
+{{^vendorExtensions.hasInterfaceModels}}
+  {{#vars}}
+  {{#vendorExtensions.x-ts-additional-props}}
+  if (__val['{{{baseName}}}']) {
+    const __data: any = {};
+    const __valData = __val['{{{baseName}}}'];
+    for(let __prop in __valData) {
+      if (__valData.hasOwnProperty(__prop)) {
+        __data[__prop] = {{#vendorExtensions.x-ts-optimize}}__val[__prop];{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(__valData[__prop], '{{{vendorExtensions.x-ts-additional-props}}}');{{/vendorExtensions.x-ts-optimize}}
+      }
+    }
+
+    __init['{{{name}}}'] = __data;
+  }
+  {{/vendorExtensions.x-ts-additional-props}}
+{{/vars}}
+{{/vendorExtensions.hasInterfaceModels}}
+{{#interfaceModels}}
+  {{#vendorExtensions.x-ts-additional-props}}// inherited fields from {{{classname}}}{{/vendorExtensions.x-ts-additional-props}}
+  {{>enhancedModelInnerFromJsonProps}}
+{{/interfaceModels}}

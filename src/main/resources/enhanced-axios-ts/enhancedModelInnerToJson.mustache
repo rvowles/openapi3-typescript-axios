@@ -1,0 +1,30 @@
+
+{{^vendorExtensions.hasInterfaceModels}}
+{{#vars}}
+  if (__val.{{{name}}}) {
+  {{#vendorExtensions.x-ts-additional-props}}
+    const __p: any = {};
+    for(let __prop in __val.{{{name}}}) {
+    if (__val.{{{name}}}.hasOwnProperty(__prop)) {
+      __p[__prop] = {{#vendorExtensions.x-ts-optimize}}__val.{{{name}}}[__prop]{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.serialize(__val.{{{name}}}[__prop], '{{{vendorExtensions.x-ts-additional-props}}}'){{/vendorExtensions.x-ts-optimize}};
+    }
+    __data['{{{baseName}}}'] = __p;
+    }
+  {{/vendorExtensions.x-ts-additional-props}}
+  {{^vendorExtensions.x-ts-additional-props}}
+    __data['{{{baseName}}}'] = {{#vendorExtensions.x-ts-optimize}}__val.{{{name}}}{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.serialize(__val.{{{name}}}, '{{{vendorExtensions.x-ts-deserialize-type}}}'){{/vendorExtensions.x-ts-optimize}};
+  {{/vendorExtensions.x-ts-additional-props}}
+  }
+{{/vars}}
+{{#additionalPropertiesType}}
+  for(let __prop in __val) {
+  if ({{classname}}TypeTransformer.otherProperties.indexOf(__prop) === -1 && __val.hasOwnProperty(__prop)) {
+  __data[__prop] = {{#vendorExtensions.x-ts-optimize}}__val[__prop]{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.serialize(__val[__prop], '{{{additionalPropertiesType}}}'){{/vendorExtensions.x-ts-optimize}};
+  }
+  }
+{{/additionalPropertiesType}}
+{{/vendorExtensions.hasInterfaceModels}}
+{{#interfaceModels}}
+  {{^vendorExtensions.hasInterfaceModels}}// inherited fields from {{{classname}}}{{/vendorExtensions.hasInterfaceModels}}
+  {{>enhancedModelInnerToJson}}
+{{/interfaceModels}}
