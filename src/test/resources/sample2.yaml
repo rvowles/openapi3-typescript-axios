@@ -435,7 +435,7 @@ components:
             format: int64
     AeItemVO:
       required:
-        - itemTypeId
+        - item_type_id
         - textValue
       type: object
       properties:
@@ -444,7 +444,7 @@ components:
           format: int32
         uuid:
           type: string
-        itemTypeId:
+        item_type_id:
           type: integer
           format: int32
         itemSpecId:
@@ -478,3 +478,22 @@ components:
               type: string
           required:
             - value
+    SignupReplyError:
+      properties:
+        schema_version:
+          type: string
+        data:
+          $ref: '#/components/schemas/SignupReplyErrorDetails'
+    SignupReplyErrorDetails:
+      properties:
+        errors:
+          additionalProperties:
+            $ref: '#/components/schemas/SignupReplyErrorKV'
+    SignupReplyErrorKV:
+      additionalProperties:
+        $ref: '#/components/schemas/SignupReplyErrorList'
+    SignupReplyErrorList:
+      type: array
+      items:
+        type: string
+        

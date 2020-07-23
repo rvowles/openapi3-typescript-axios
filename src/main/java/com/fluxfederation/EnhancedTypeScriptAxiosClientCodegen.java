@@ -1,6 +1,8 @@
 package com.fluxfederation;
 
+import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.util.SchemaTypeUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.openapitools.codegen.CliOption;
@@ -180,9 +182,7 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
     "num", "any",
     "number", "boolean", "object",
     "Array<any>", "Array<object>", "Array<string>", "Array<int>", "Array<integer>",
-    "Array<any>", "Array<object>", "Array<string>", "Array<int>", "Array<integer>",
-    "Set<double>", "Set<float>", "Set<num>", "Set<number>", "Set<boolean>",
-    "Set<double>", "Set<float>", "Set<num>", "Set<number>", "Set<boolean>"
+    "Array<any>", "Array<object>", "Array<string>", "Array<int>", "Array<integer>"
     );
   private void enhanceDataTarget(String dataType, String dataFormat, Map<String, Object> vendorExtensions) {
     if (dataType != null) {
@@ -318,7 +318,31 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
 
     return result;
   }
+  
+  @Override
+  public String getTypeDeclaration(Schema p) {
+    String val = super.getTypeDeclaration(p);
 
+    if (ModelUtils.isMapSchema(p)) {
+      Schema inner = this.getSchemaAdditionalProperties(p);
+      String nullSafeSuffix = this.getNullSafeAdditionalProps() ? " | undefined" : "";
+      return "Record<string, " + this.getTypeDeclaration(ModelUtils.unaliasSchema(this.openAPI, inner)) + nullSafeSuffix + ">";
+    }
+
+    return val;
+  }
+
+  @Override
+  protected String getParameterDataType(Parameter parameter, Schema p) {
+    String val = super.getParameterDataType(parameter, p);
+
+    if (ModelUtils.isMapSchema(p)) {
+      Schema inner = this.getAdditionalProperties(p);
+      val = "Record<string, " + this.getParameterDataType(parameter, inner) + ">";
+    }
+
+    return val;
+  }
 
   @Override
   protected void addAdditionPropertiesToCodeGenModel(CodegenModel codegenModel, Schema schema) {
@@ -330,8 +354,7 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
     if (var.dataType == null) {
       var.vendorExtensions.put(X_TS_DESERIALIZE_TYPE, "object");
     } else {
-      if (var.dataType.startsWith("{")) {
-        var.vendorExtensions.put(X_TS_RECORD_TYPE,  "Record<string, " + var.items.dataType + ">");
+      if (var.dataType.startsWith("Record<")) {
         var.vendorExtensions.put(X_TS_ADDITIONAL_PROPS, var.items.dataType);
         cm.vendorExtensions.put(X_TS_ADDITIONAL_PROPS, Boolean.TRUE);
 
