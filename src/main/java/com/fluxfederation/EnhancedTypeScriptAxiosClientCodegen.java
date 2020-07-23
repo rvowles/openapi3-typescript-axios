@@ -36,6 +36,8 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
   public static final String USE_ENHANCED_SERIALIZER = "useEnhancedSerializer";
   public static final String USE_COALESCE_RETURN_TYPES = "useCoalesceReturnTypes";
   public static final String DEOPTIMIZE_DESERIALIZATION = "useNonOptimalDeserialization";
+  private static final String DONT_GENERATE_INDEX = "generateWithoutIndex";
+  private static final String EXPOSE_TRANSFORMERS = "exposeTransformers";
 
   public static final String TEMPLATE_FOLDER = "enhanced-axios-ts";
   private static final String X_TS_DESERIALIZE_TYPE = "x-ts-deserialize-type";
@@ -76,6 +78,10 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
       "actually returns wrapped in an AxiosResponse."));
     this.cliOptions.add(new CliOption(DEOPTIMIZE_DESERIALIZATION, "This allows you to force all deserialization and " +
       "serialization through the ObjectSerializer"));
+    this.cliOptions.add(new CliOption(DONT_GENERATE_INDEX, "If you are generating in the same directory as other " +
+      "code, don't overwrite the index file."));
+    this.cliOptions.add(new CliOption(EXPOSE_TRANSFORMERS, "Expose all type transformers directly. Use if you are " +
+      "manually triggering serialization."));
   }
 
   @Override
@@ -124,11 +130,13 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
     additionalProperties.put("apiRelativeToRoot", apiRelativeToRoot);
     additionalProperties.put("modelRelativeToRoot", modelRelativeToRoot);
 
-    boolean generateApis = additionalProperties.containsKey(CodegenConstants.GENERATE_APIS);
-    boolean generateModels = additionalProperties.containsKey(CodegenConstants.GENERATE_MODELS);
+    boolean generateApis = Boolean.TRUE.equals(additionalProperties.get(CodegenConstants.GENERATE_APIS));
+    boolean generateModels = Boolean.TRUE.equals(additionalProperties.get(CodegenConstants.GENERATE_MODELS));
     boolean separateModelsAndApi = additionalProperties.containsKey(SEPARATE_MODELS_AND_API);
     optimized = !additionalProperties.containsKey(DEOPTIMIZE_DESERIALIZATION);
-    supportingFiles.add(new SupportingFile("index.mustache", "", "index.ts"));
+    if (!additionalProperties.containsKey(DONT_GENERATE_INDEX)) {
+      supportingFiles.add(new SupportingFile("index.mustache", "", "index.ts"));
+    }
 
     if (generateApis) { // this obviates Axios completely
       supportingFiles.add(new SupportingFile("baseApi.mustache", "", "base.ts"));
@@ -145,10 +153,10 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
 
     if (separateModelsAndApi) {
       if (StringUtils.isBlank(modelPackage) && generateModels) {
-        throw new RuntimeException("apiPackage and modelPackage must be defined");
+        throw new RuntimeException("modelPackage must be defined");
       }
       if (StringUtils.isBlank(apiPackage) && generateApis) {
-        throw new RuntimeException("apiPackage and modelPackage must be defined");
+        throw new RuntimeException("apiPackage must be defined");
       }
 
       if (generateApis) {

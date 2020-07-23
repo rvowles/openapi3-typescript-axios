@@ -2,9 +2,9 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.bluetrainsoftware.maven</groupId>
 	<artifactId>openapi-tsaxios-generator</artifactId>
+	<version>1.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>openapi-tsaxios-generator</name>
-	<version>1.1-SNAPSHOT</version>
 
 	<description>
 		dart2 generator from openapi 3.x spec files. Changing to openapitools dependencies.

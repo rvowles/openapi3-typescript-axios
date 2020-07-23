@@ -7,8 +7,8 @@ import { {{{x-ts-all-models}}} } from './';
 {{#models}}
 {{#usesDiscriminator}}
   {{#model}}
-class {{classname}}TypeTransformer {
-  static toJson(val: {{classname}}): any {
+{{#exposeTransformers}}export {{/exposeTransformers}}class {{classname}}TypeTransformer {
+{{#exposeTransformers}}public {{/exposeTransformers}}static toJson(val: {{classname}}): any {
 
     switch(val['{{{discriminator.propertyName}}}']) {
       {{#discriminator.mappedModels}}
@@ -24,7 +24,7 @@ class {{classname}}TypeTransformer {
     }
   }
 
-  static fromJson(__val: any): {{classname}} {
+{{#exposeTransformers}}public {{/exposeTransformers}}static fromJson(__val: any): {{classname}} {
     switch(__val['{{{discriminator.propertyBaseName}}}']) {
 {{#discriminator.mappedModels}}
         case '{{{mappingName}}}':
@@ -44,11 +44,11 @@ class {{classname}}TypeTransformer {
 {{^usesDiscriminator}}
   {{#model}}
 
-class {{classname}}TypeTransformer {
+{{#exposeTransformers}}export {{/exposeTransformers}}class {{classname}}TypeTransformer {
 {{#additionalPropertiesType}}
   private static otherProperties = [{{#vars}}'{{{name}}}', {{/vars}}];
 {{/additionalPropertiesType}}
-  static toJson(__val: {{classname}}): any {
+{{#exposeTransformers}}public {{/exposeTransformers}}static toJson(__val: {{classname}}): any {
 {{#isEnum}}
     return __val?.toString();
 {{/isEnum}}
@@ -60,7 +60,7 @@ class {{classname}}TypeTransformer {
   }
 
   // expect this to be a decoded value
-  static fromJson(__val: any): {{classname}} {
+{{#exposeTransformers}}public {{/exposeTransformers}}  static fromJson(__val: any): {{classname}} {
 {{#isEnum}}
     if (__val === null || __val === undefined) return undefined;
     switch (__val.toString()) {
