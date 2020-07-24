@@ -1,7 +1,7 @@
 
 {{^vendorExtensions.hasInterfaceModels}}
 {{#vars}}
-  if (__val.{{{name}}}) {
+  if (__val.{{{name}}} !== null && __val.{{{name}}} !== undefined) {
   {{#vendorExtensions.x-ts-additional-props}}
     const __p: any = {};
     for(let __prop in __val.{{{name}}}) {
