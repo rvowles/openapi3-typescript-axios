@@ -379,7 +379,11 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
           var.vendorExtensions.put(X_TS_DESERIALIZE_TYPE,  var.dataFormat);
         }
       } else {
-        if ("date".equals(var.dataType.toLowerCase())) {
+        if ("Array<Date>".equals(var.dataType) && "date-time".equals(var.dataFormat)) {
+          var.vendorExtensions.put(X_TS_DESERIALIZE_TYPE, "Array<DateTime>");
+        } else if ("Set<Date>".equals(var.dataType) && "date-time".equals(var.dataFormat)) {
+          var.vendorExtensions.put(X_TS_DESERIALIZE_TYPE, "Set<DateTime>");
+        } else if ("date".equals(var.dataType.toLowerCase())) {
           var.vendorExtensions.put(X_TS_DESERIALIZE_TYPE,  var.dataFormat);
         } else {
           var.vendorExtensions.put(X_TS_DESERIALIZE_TYPE, var.dataType);
