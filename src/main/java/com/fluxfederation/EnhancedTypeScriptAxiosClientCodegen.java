@@ -130,7 +130,7 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
     additionalProperties.put("apiRelativeToRoot", apiRelativeToRoot);
     additionalProperties.put("modelRelativeToRoot", modelRelativeToRoot);
 
-    boolean generateApis = Boolean.TRUE.equals(additionalProperties.get(CodegenConstants.GENERATE_APIS));
+      boolean generateApis = Boolean.TRUE.equals(additionalProperties.get(CodegenConstants.GENERATE_APIS));
     boolean generateModels = Boolean.TRUE.equals(additionalProperties.get(CodegenConstants.GENERATE_MODELS));
     boolean separateModelsAndApi = additionalProperties.containsKey(SEPARATE_MODELS_AND_API);
     optimized = !additionalProperties.containsKey(DEOPTIMIZE_DESERIALIZATION);
