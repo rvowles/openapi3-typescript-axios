@@ -103,7 +103,7 @@ const _regMap = new RegExp('^Map\\<string,(.*)\\>$');
 const _baseEncoder = (type: string, value: any) => value;
 const _dateEncoder = (type: string, value: any) => {
   const val = value as Date;
-  return `${val.getFullYear()}-${val.getMonth()+1}-${val.getDate()}`;
+  return `${x.getFullYear()}-${(x.getMonth()+1).toString().padStart(2,'0')}-${x.getDate().toString().padStart(2,'0')}`;
 };
 
 export declare type EncoderFunc = (type: string, value: any) => any;
@@ -132,6 +132,8 @@ export const serializers: Record<string, EncoderFunc> = {
   'Array<boolean>': _baseEncoder,
   'Array<object>': _baseEncoder,
   'Array<any>': _baseEncoder,
+  'date': _dateEncoder,
+  'date-time': (t, value) => (value as Date).toISOString(),
   'Date': _dateEncoder,
   'DateTime': (t, value) => (value as Date).toISOString(),
  {{#models}}
@@ -162,6 +164,8 @@ export const deserializers: Record<string, EncoderFunc> = {
   'boolean': _passthroughDecoder,
   'object': _passthroughDecoder,
   'any': _passthroughDecoder,
+  'date': _dateDecoder,
+  'date-time': _dateTimeDecoder,
   'Date': _dateDecoder,
   'DateTime': _dateTimeDecoder,
  {{#models}}
