@@ -103,7 +103,7 @@ const _regMap = new RegExp('^Map\\<string,(.*)\\>$');
 const _baseEncoder = (type: string, value: any) => value;
 const _dateEncoder = (type: string, value: any) => {
   const val = value as Date;
-  return `${x.getFullYear()}-${(x.getMonth()+1).toString().padStart(2,'0')}-${x.getDate().toString().padStart(2,'0')}`;
+  return `${val.getFullYear()}-${(val.getMonth()+1).toString().padStart(2,'0')}-${val.getDate().toString().padStart(2,'0')}`;
 };
 
 export declare type EncoderFunc = (type: string, value: any) => any;
