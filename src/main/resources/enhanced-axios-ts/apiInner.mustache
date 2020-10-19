@@ -241,7 +241,7 @@ export const {{classname}}Fp = function(configuration?: Configuration) {
          */
         async {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<{{^useCoalesceReturnTypes}}{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/returnType}}{{/useCoalesceReturnTypes}}{{#useCoalesceReturnTypes}}{{{vendorExtensions.x-ts-responseTypes}}}{{/useCoalesceReturnTypes}}>> {
             const localVarAxiosArgs = await {{classname}}AxiosParamCreator(configuration).{{nickname}}({{#allParams}}{{paramName}}, {{/allParams}}options);
-            return (axios: AxiosInstance = globalAxios, basePath: string = BASE_PATH) => {
+            return (axios: AxiosInstance = (configuration?.axiosInstance || globalAxios), basePath: string = BASE_PATH) => {
                 const axiosRequestArgs = {...localVarAxiosArgs.options, url: basePath + localVarAxiosArgs.url};
       {{^useCoalesceReturnTypes}}
           return axios.request(axiosRequestArgs);

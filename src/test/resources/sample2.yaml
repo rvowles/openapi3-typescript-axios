@@ -123,27 +123,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EventResponse"
-  #  /event/upcoming2:
-  #    post:
-  #      tags:
-  #        - ControlService
-  #      description: "Get the list of upcoming events"
-  #      operationId: upcomingEvents2
-  #      requestBody:
-  #        required: true
-  #        content:
-  #          application/json:
-  #            schema:
-  #              oneOf:
-  #                - $ref: '#/components/schemas/EventRequest'
-  #                - $ref: '#/components/schemas/EventResponse'
-  #      responses:
-  #        "200":
-  #          description: "upcoming events"
-  #          content:
-  #            application/yaml:
-  #              schema:
-  #                $ref: "#/components/schemas/EventResponse"
+  /event/upcoming2:
+    post:
+      tags:
+        - ControlService
+      description: "Get the list of upcoming events"
+      operationId: upcomingEvents2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/EventRequest'
+                - $ref: '#/components/schemas/EventResponse'
+              discriminator:
+                propertyName: discrim
+      responses:
+        "200":
+          description: "upcoming events"
+          content:
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/EventResponse"
   /hello:
     get:
       tags:
@@ -206,6 +208,8 @@ components:
           type: string
     EventResponse:
       properties:
+        discrim:
+          type: string
         error:
           type: integer
         error_msg:
