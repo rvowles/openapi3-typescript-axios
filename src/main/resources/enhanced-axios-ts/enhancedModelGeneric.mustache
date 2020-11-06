@@ -3,7 +3,7 @@
 * @export
 * @class {{classname}}
 */
-export class {{classname}} {{#parent}}extends {{{parent}}} {{/parent}}{
+export class {{classname}} {
 {{#additionalPropertiesType}}
   [key: string]: {{{additionalPropertiesType}}}{{#hasVars}} | any{{/hasVars}};
 
@@ -21,9 +21,6 @@ export class {{classname}} {{#parent}}extends {{{parent}}} {{/parent}}{
 {{/vars}}
 
   constructor(init?: Partial<{{classname}}>) {
-{{#hasAllOf}}
-    super({}); // next line will assign all props
-{{/hasAllOf}}
     Object.assign(this, init);
   }
 }{{#hasEnums}}

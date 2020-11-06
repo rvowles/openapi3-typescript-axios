@@ -500,4 +500,20 @@ components:
       type: array
       items:
         type: string
-        
+    BaseClass:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+        clazz:
+          type: string
+    SubClass:
+      allOf:
+        - $ref: "#/components/schema/BaseClass"
+        - type: object
+          properties:
+            seatType:
+              type: string
