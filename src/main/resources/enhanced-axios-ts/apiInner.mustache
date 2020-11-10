@@ -260,17 +260,20 @@ export const {{classname}}Fp = function(configuration?: Configuration) {
 
                   return data;
                 }).catch( (err) => {
-                  const data = err.response;
+                  if (err.response) {
+                    const data = err.response;
         {{#hasProduces}}
           {{#responses}}
             {{#vendorExtensions.x-ts-is-error}}
-                if (data.status === {{code}}) {
-                  data.data = ObjectSerializer.deserialize(data.data, '{{{vendorExtensions.x-ts-deserialize-type}}}');
-                }
+                    if (data.status === {{code}}) {
+                      data.data = ObjectSerializer.deserialize(data.data, '{{{vendorExtensions.x-ts-deserialize-type}}}');
+                    }
             {{/vendorExtensions.x-ts-is-error}}
           {{/responses}}
         {{/hasProduces}}
-                return data;
+                    return data;
+                }
+                throw err;
           });
       {{/useCoalesceReturnTypes}}
             };
