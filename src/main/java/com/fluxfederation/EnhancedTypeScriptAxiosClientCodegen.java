@@ -247,6 +247,7 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
           if (responseTypes.isEmpty()) {
             responseTypes = new HashSet<>(Collections.singletonList("void"));
           }
+
           op.vendorExtensions.put("x-ts-responseTypes", String.join("|", responseTypes));
 
           op.responses.forEach(bp -> {
@@ -256,6 +257,13 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
               bp.setUniqueItems(true);
             }
           });
+        });
+
+      // if they don't produce anything, indicate void
+      operations.stream()
+        .filter(op -> !op.hasProduces)
+        .forEach(op -> {
+          op.vendorExtensions.put("x-ts-responseTypes", String.join("|", new HashSet<>(Collections.singletonList("void"))));
         });
 
       operations.stream()

@@ -517,3 +517,22 @@ components:
           properties:
             seatType:
               type: string
+    BaseClassWithDiscriminator:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+        clazz:
+          type: string
+      discriminator:
+        propertyName: clazz
+    SubClassDiscrim:
+      allOf:
+        - $ref: "#/components/schema/BaseClassWithDiscriminator"
+        - type: object
+          properties:
+            seatType:
+              type: string
