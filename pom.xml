@@ -7,7 +7,7 @@
 	<name>openapi-tsaxios-generator</name>
 
 	<description>
-		dart2 generator from openapi 3.x spec files. Changing to openapitools dependencies.
+		typescript client generator from openapi 3.x spec files for axios using classes. Changing to openapitools dependencies.
 	</description>
 
 	<url>https://www.bluetrainsoftware.com</url>
@@ -34,7 +34,7 @@
 	</scm>
 
 	<properties>
-		<openapi-codegen-version>5.0.0-SNAPSHOT</openapi-codegen-version>
+		<openapi-codegen-version>5.1.0</openapi-codegen-version>
 	</properties>
 
 	<prerequisites>
@@ -63,34 +63,23 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.13</version>
+			<version>4.13.1</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
-	<repositories>
-		<repository>
-			<id>oss-sonatype</id>
-			<name>oss-sonatype</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
 
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>io.repaint.maven</groupId>
 				<artifactId>tiles-maven-plugin</artifactId>
-				<version>2.17</version>
+				<version>2.22</version>
 				<extensions>true</extensions>
 				<configuration>
 					<filtering>false</filtering>
 					<tiles>
-            <!-- its a good tile -->
-            <tile>cd.connect.tiles:tile-java:[1.3, 2)</tile>
+						<tile>com.bluetrainsoftware.tiles:tile-java:[1.1,2)</tile>
+						<tile>com.bluetrainsoftware.tiles:tile-release:[1.1,2)</tile>
 					</tiles>
 				</configuration>
 			</plugin>

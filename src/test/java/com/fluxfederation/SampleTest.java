@@ -15,7 +15,7 @@ public class SampleTest {
       "--additional-properties", "useEnhancedSerializer",
       "--additional-properties", "npmName=sample",
       "--additional-properties", "useCoalesceReturnTypes",
-      "--additional-properties", "withSeparateModelsAndApi=true",
+//      "--additional-properties", "withSeparateModelsAndApi=true",
       "--api-package", "api",
       "--model-package", "model",
       "--output", "target/" + getClass().getSimpleName())
