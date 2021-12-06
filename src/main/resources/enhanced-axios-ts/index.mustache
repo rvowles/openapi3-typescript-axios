@@ -7,7 +7,7 @@ export * from "./api";
 {{/withSeparateModelsAndApi}}
 {{#withSeparateModelsAndApi}}
   {{#generateApis}}
-export * from "./api";
+export * from "./{{{tsApiPackage}}}";
   {{/generateApis}}
   {{#generateModels}}
 export * from './{{tsModelPackage}}';

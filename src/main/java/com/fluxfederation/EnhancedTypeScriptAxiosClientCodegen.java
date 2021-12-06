@@ -418,6 +418,13 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
       Map<String, Object> mo = (Map<String, Object>) _mo;
       CodegenModel cm = (CodegenModel) mo.get("model");
 
+      cm.vars.forEach(p -> {
+          if (p.getVendorExtensions().containsKey("x-basename")) {
+            p.setBaseName(p.getVendorExtensions().get("x-basename").toString());
+          }
+        }
+      );
+
       // tell this specific model it has no additional props fields by default. Inherited models may be different
       cm.vendorExtensions.put(X_TS_ADDITIONAL_PROPS, Boolean.FALSE);
 
