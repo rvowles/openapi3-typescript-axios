@@ -59,6 +59,23 @@ import { {{{x-ts-all-models}}} } from './';
 {{/isEnum}}
   }
 
+{{^isEnum}}
+{{#exposeTransformers}}public {{/exposeTransformers}} static fromJsonAsAny(__val: any): any {
+    const __init: any = {};
+    {{>enhancedModelInnerFromJson}}
+    
+    {{>enhancedModelInnerFromJsonProps}}
+    {{#additionalPropertiesType}}
+    for(let prop in __val) {
+      if ({{classname}}TypeTransformer.otherProperties.indexOf(prop) === -1 && __val.hasOwnProperty(prop)) {
+        __init[prop] = {{#vendorExtensions.x-ts-optimize}}__val[prop];{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(__val[prop], '{{{additionalPropertiesType}}}');{{/vendorExtensions.x-ts-optimize}}
+      }
+    }
+    {{/additionalPropertiesType}}
+
+    return __init;
+}
+{{/isEnum}}
   // expect this to be a decoded value
 {{#exposeTransformers}}public {{/exposeTransformers}}  static fromJson(__val: any): {{classname}} {
 {{#isEnum}}
@@ -75,18 +92,7 @@ import { {{{x-ts-all-models}}} } from './';
     return undefined;
 {{/isEnum}}
 {{^isEnum}}
-    const __init: any = {
-      {{>enhancedModelInnerFromJson}}
-    };
-    {{>enhancedModelInnerFromJsonProps}}
-    {{#additionalPropertiesType}}
-    for(let prop in __val) {
-      if ({{classname}}TypeTransformer.otherProperties.indexOf(prop) === -1 && __val.hasOwnProperty(prop)) {
-        __init[prop] = {{#vendorExtensions.x-ts-optimize}}__val[prop];{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(__val[prop], '{{{additionalPropertiesType}}}');{{/vendorExtensions.x-ts-optimize}}
-      }
-    }
-    {{/additionalPropertiesType}}
-    return new {{classname}}(__init);
+    return new {{classname}}({{classname}}TypeTransformer.fromJsonAsAny(__val));
 {{/isEnum}}
   }
 }
