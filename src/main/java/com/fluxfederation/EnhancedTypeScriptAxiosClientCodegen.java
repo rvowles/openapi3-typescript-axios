@@ -307,10 +307,10 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
 
     Set<String> modelClassnames = new HashSet<>();
     for (Map.Entry<String, Object> entry : result.entrySet()) {
-      checkForMapKeyOverride(entry.getKey(), result);
+      Set<String> extraImports = checkForMapKeyOverride(entry.getKey(), result);
 
-      Map<String, Object> inner = (Map<String, Object>) entry.getValue();
-      List<Map<String, Object>> models = (List<Map<String, Object>>) inner.get("models");
+      Map<String, Object> info = (Map<String, Object>) entry.getValue();
+      List<Map<String, Object>> models = (List<Map<String, Object>>) info.get("models");
       for (Map<String, Object> model : models) {
         CodegenModel codegenModel = (CodegenModel) model.get("model");
         if (!("any".equals(codegenModel.dataType) && codegenModel.vars.size() == 0) && !"Date".equals(codegenModel.dataType) ) {
@@ -324,6 +324,18 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
         codegenModel.vendorExtensions.put("hasInterfaceModels", (codegenModel.interfaceModels != null && codegenModel.interfaceModels.size() > 0));
         model.put("usesDiscriminator", codegenModel.oneOf.size() > 0 || codegenModel.discriminator != null);
       }
+
+      // now walk through all the imports and re-write them
+      List<Map<String, String>> importStatements = (List<Map<String, String>>)info.get("imports");
+
+      importStatements.forEach(statement -> {
+        String iStatement = statement.get("import");
+        extraImports.remove(iStatement);  // no dupes
+      });
+
+      extraImports.forEach(i -> {
+        importStatements.add(tsImport(i));
+      });
     }
 
     if (objs.size() > 0) {
@@ -333,8 +345,24 @@ public class EnhancedTypeScriptAxiosClientCodegen extends AbstractTypeScriptClie
 
     }
 
-
     return result;
+  }
+
+  private Map<String, String> tsImport(String importModel) {
+    Map<String, String> importMap = new HashMap<>();
+    
+    importMap.put("import", importModel);
+    importMap.put("tsImport", importModel.replace('.', '/'));
+    if (importModel.contains(".")) {
+      String className = importModel.substring(importModel.lastIndexOf(".") + 1);
+      importMap.put("class", className);
+      importMap.put("filename", toModelFilename(className));
+    } else {
+      importMap.put("class", importModel);
+      importMap.put("filename", toModelFilename(importModel));
+    }
+
+    return importMap;
   }
 
   private static class XPropertyRef {
