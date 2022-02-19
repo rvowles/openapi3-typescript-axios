@@ -319,12 +319,19 @@ components:
                 type: integer
               text:
                 type: string
+    SimpleEnum:
+      type: string
+      enum:
+        - cumberlands
+        - sage_and_onion
+        - sweet_pickle
     AddProps3:
       properties:
         discrim:
           type: string
         extra:
           type: object
+          x-property-ref: "#/components/schemas/SimpleEnum"
           additionalProperties:
             type: array
             uniqueItems: true
