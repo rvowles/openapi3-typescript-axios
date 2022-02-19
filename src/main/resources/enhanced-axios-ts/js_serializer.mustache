@@ -103,8 +103,8 @@ import { {{{x-ts-all-models}}} } from './';
 
 const _regList = new RegExp('^Array\\<(.*)\\>$');
 const _regSet = new RegExp('^Set\\<(.*)\\>$');
-const _regRecord = new RegExp('^Record\\<string,(.*)\\>$');
-const _regMap = new RegExp('^Map\\<string,(.*)\\>$');
+const _regRecord = new RegExp('^Record\\<(.*),(.*)\\>$');
+const _regMap = new RegExp('^Map\\<(.*),(.*)\\>$');
 
 const _baseEncoder = (type: string, value: any) => value;
 const _dateEncoder = (type: string, value: any) => {
@@ -183,22 +183,22 @@ export const deserializers: Record<string, EncoderFunc> = {
 
 
 export class ObjectSerializer {
-	public static deserializeOwn(value: any, innerType: string): any {
+	public static deserializeOwn(value: any, valueType: string, keyType: string): any {
 		const result: any = {};
 		for (let __prop in value) {
 			if (value.hasOwnProperty(__prop)) {
-				result[__prop] = ObjectSerializer.deserialize(value[__prop], innerType);
+				result[ObjectSerializer.deserialize(__prop, keyType)] = ObjectSerializer.deserialize(value[__prop], valueType);
 			}
 		}
 
     return result;
   }
 
-	public static serializeOwn(value: any, innerType: string): any {
+	public static serializeOwn(value: any, valueType: string, keyType: string): any {
 		const result: any = {};
 		for (let __prop in value) {
 			if (value.hasOwnProperty(__prop)) {
-				result[__prop] = ObjectSerializer.serialize(value[__prop], innerType);
+        result[ObjectSerializer.deserialize(__prop, keyType)] = ObjectSerializer.serialize(value[__prop], valueType);
 			}
 		}
 
@@ -216,8 +216,8 @@ export class ObjectSerializer {
     }
 
     var match: any;
-    if (((match = targetType.match(_regRecord)) !== null) && match.length === 2) {
-      return ObjectSerializer.serializeOwn(value, match[1].trim());
+    if (((match = targetType.match(_regRecord)) !== null) && match.length === 3) {
+      return ObjectSerializer.serializeOwn(value, match[2].trim(), match[1].trim());
     } else if ((value instanceof Array) &&
         ((match = targetType.match(_regList)) !== null) && match.length === 2) {
       return value.map((v) => ObjectSerializer.serialize(v, match[1]));
@@ -227,8 +227,8 @@ export class ObjectSerializer {
     } else if ((value instanceof Set) &&
     ((match = targetType.match(_regSet)) !== null) && match.length === 2) {
       return Array.from(value).map((v) => ObjectSerializer.serialize(v, match[1]));
-    } else if (value instanceof Map && ((match = targetType.match(_regMap)) !== null) && match.length === 2) {
-      return new Map(Array.from(value, ([k, v]) => [k, ObjectSerializer.serialize(v, match[1])]));
+    } else if (value instanceof Map && ((match = targetType.match(_regMap)) !== null) && match.length === 3) {
+      return new Map(Array.from(value, ([k, v]) => [ObjectSerializer.serialize(k, match[1].trim()), ObjectSerializer.serialize(v, match[2].trim())]));
     }
 
     return undefined;
@@ -244,8 +244,8 @@ export class ObjectSerializer {
     }
 
     var match: any;
-    if (((match = targetType.match(_regRecord)) !== null) && match.length === 2) { // is an array we want an array
-      return ObjectSerializer.deserializeOwn(value, match[1].trim());
+    if (((match = targetType.match(_regRecord)) !== null) && match.length === 3) { // is an array we want an array
+      return ObjectSerializer.deserializeOwn(value, match[2].trim(), match[1].trim());
     } else if ((value instanceof Array) &&
         ((match = targetType.match(_regList)) !== null) && match.length === 2) {
       return value.map((v) => ObjectSerializer.deserialize(v, match[1]));
@@ -255,8 +255,8 @@ export class ObjectSerializer {
     } else if ((value instanceof Set) && // is a set we want a set
         ((match = targetType.match(_regSet)) !== null) && match.length === 2) {
       return new Set(Array.from(value).map((v) => ObjectSerializer.deserialize(v, match[1])));
-    } else if (value instanceof Map && ((match = targetType.match(_regMap)[1]) !== null) && match.length === 2) {
-      return new Map(Array.from(value, ([k, v]) => [k, ObjectSerializer.deserialize(v, match[1])]));
+    } else if (value instanceof Map && ((match = targetType.match(_regMap)[1]) !== null) && match.length === 3) {
+      return new Map(Array.from(value, ([k, v]) => [ObjectSerializer.serialize(k, match[1].trim()), ObjectSerializer.deserialize(v, match[2].trim())]));
     }
 
     return value;

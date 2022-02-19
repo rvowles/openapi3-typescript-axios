@@ -6,7 +6,7 @@
     const __p: any = {};
     for(let __prop in __val.{{{name}}}) {
     if (__val.{{{name}}}.hasOwnProperty(__prop)) {
-      __p[__prop] = {{#vendorExtensions.x-ts-optimize}}__val.{{{name}}}[__prop]{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.serialize(__val.{{{name}}}[__prop], '{{{vendorExtensions.x-ts-additional-props}}}'){{/vendorExtensions.x-ts-optimize}};
+    __p[{{#isMap}}ObjectSerializer.serialize({{/isMap}}__prop{{#isMap}}, '{{vendorExtensions.x-property-ref}}'){{/isMap}}] = {{#vendorExtensions.x-ts-optimize}}__val.{{{name}}}[__prop]{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.serialize(__val.{{{name}}}[__prop], '{{{vendorExtensions.x-ts-additional-props}}}'){{/vendorExtensions.x-ts-optimize}};
     }
     __data['{{{baseName}}}'] = __p;
     }
