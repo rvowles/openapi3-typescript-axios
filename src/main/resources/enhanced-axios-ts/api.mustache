@@ -14,12 +14,30 @@ import { BASE_PATH, COLLECTION_FORMATS, RequestArgs, BaseAPI, RequiredError } fr
 {{#generateModels}}
 {{^useEnhancedSerializer}}
 {{#models}}
-{{#model}}{{#isEnum}}{{>modelEnum}}{{/isEnum}}{{#oneOf}}{{#-first}}{{>modelOneOf}}{{/-first}}{{/oneOf}}{{^isEnum}}{{^oneOf}}{{>modelGeneric}}{{/oneOf}}{{/isEnum}}{{/model}}
+{{#model}}
+  {{^parent}}
+    {{#isEnum}}{{>modelEnum}}{{/isEnum}}{{#oneOf}}{{#-first}}{{>modelOneOf}}{{/-first}}{{/oneOf}}{{^isEnum}}{{^oneOf}}{{>modelGeneric}}{{/oneOf}}{{/isEnum}}
+  {{/parent}}
+{{/model}}
+{{/models}}
+{{#models}}
+    {{#model}}
+      {{#parent}}
+      {{#isEnum}}{{>modelEnum}}{{/isEnum}}{{#oneOf}}{{#-first}}{{>modelOneOf}}{{/-first}}{{/oneOf}}{{^isEnum}}{{^oneOf}}{{>modelGeneric}}{{/oneOf}}{{/isEnum}}
+      {{/parent}}
+    {{/model}}
 {{/models}}
 {{/useEnhancedSerializer}}
 {{#useEnhancedSerializer}}
   {{#models}}
-  {{#model}}{{#isEnum}}{{>modelEnum}}{{/isEnum}}{{#oneOf}}{{#-first}}{{>modelOneOf}}{{/-first}}{{/oneOf}}{{^isEnum}}{{^oneOf}}{{>enhancedModelGeneric}}{{/oneOf}}{{/isEnum}}{{/model}}
+
+  {{#model}}{{^parent}}{{#isEnum}}{{>modelEnum}}{{/isEnum}}{{#oneOf}}{{#-first}}{{>modelOneOf}}{{/-first}}{{/oneOf}}{{^isEnum}}{{^oneOf}}{{>enhancedModelGeneric}}{{/oneOf}}{{/isEnum}}{{/parent}}{{/model}}
+
+  {{/models}}
+  {{#models}}
+
+  {{#model}}{{#parent}}{{#isEnum}}{{>modelEnum}}{{/isEnum}}{{#oneOf}}{{#-first}}{{>modelOneOf}}{{/-first}}{{/oneOf}}{{^isEnum}}{{^oneOf}}{{>enhancedModelGeneric}}{{/oneOf}}{{/isEnum}}{{/parent}}{{/model}}
+
   {{/models}}
   {{>js_serializer}}
 {{/useEnhancedSerializer}}

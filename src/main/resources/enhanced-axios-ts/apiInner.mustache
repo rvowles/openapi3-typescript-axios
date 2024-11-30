@@ -259,7 +259,7 @@ export const {{classname}}Fp = function(configuration?: Configuration) {
           {{/hasProduces}}
 
                   return data;
-                }).catch( (err) => {
+                }).catch( (err: any) => {
                   if (err.response) {
                     const data = err.response;
         {{#hasProduces}}

@@ -1,10 +1,15 @@
+{{#interfaceModels}}
+  {{^vendorExtensions.hasInterfaceModels}}// inherited fields from {{{classname}}}{{/vendorExtensions.hasInterfaceModels}}
+  {{classname}}TypeTransformer.toJson(__val, __data);
+{{/interfaceModels}}
 
-{{^vendorExtensions.hasInterfaceModels}}
 {{#vars}}
+  {{^isInherited}}
   if (__val.{{{name}}} !== null && __val.{{{name}}} !== undefined) {
   {{#vendorExtensions.x-ts-additional-props}}
     const __p: any = {};
-    for(let __prop in __val.{{{name}}}) {
+    const __keys = Object.keys(__val.{{{name}}}) as Array<{{{vendorExtensions.x-property-ref}}}>;
+    for(let __prop of __keys) {
     if (__val.{{{name}}}.hasOwnProperty(__prop)) {
     __p[{{#isMap}}ObjectSerializer.serialize({{/isMap}}__prop{{#isMap}}, '{{vendorExtensions.x-property-ref}}'){{/isMap}}] = {{#vendorExtensions.x-ts-optimize}}__val.{{{name}}}[__prop]{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.serialize(__val.{{{name}}}[__prop], '{{{vendorExtensions.x-ts-additional-props}}}'){{/vendorExtensions.x-ts-optimize}};
     }
@@ -15,16 +20,14 @@
     __data['{{{baseName}}}'] = {{#vendorExtensions.x-ts-optimize}}__val.{{{name}}}{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.serialize(__val.{{{name}}}, '{{{vendorExtensions.x-ts-deserialize-type}}}'){{/vendorExtensions.x-ts-optimize}};
   {{/vendorExtensions.x-ts-additional-props}}
   }
+  {{/isInherited}}
 {{/vars}}
 {{#additionalPropertiesType}}
+  {{^vendorExtensions.x-additional-properties-inherited}}
   for(let __prop in __val) {
   if ({{classname}}TypeTransformer.otherProperties.indexOf(__prop) === -1 && __val.hasOwnProperty(__prop)) {
   __data[__prop] = {{#vendorExtensions.x-ts-optimize}}__val[__prop]{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.serialize(__val[__prop], '{{{additionalPropertiesType}}}'){{/vendorExtensions.x-ts-optimize}};
   }
   }
+  {{/vendorExtensions.x-additional-properties-inherited}}
 {{/additionalPropertiesType}}
-{{/vendorExtensions.hasInterfaceModels}}
-{{#interfaceModels}}
-  {{^vendorExtensions.hasInterfaceModels}}// inherited fields from {{{classname}}}{{/vendorExtensions.hasInterfaceModels}}
-  {{>enhancedModelInnerToJson}}
-{{/interfaceModels}}

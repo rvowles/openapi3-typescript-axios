@@ -519,7 +519,7 @@ components:
           type: string
     SubClass:
       allOf:
-        - $ref: "#/components/schema/BaseClass"
+        - $ref: "#/components/schemas/BaseClass"
         - type: object
           properties:
             seatType:
@@ -538,7 +538,7 @@ components:
         propertyName: clazz
     SubClassDiscrim:
       allOf:
-        - $ref: "#/components/schema/BaseClassWithDiscriminator"
+        - $ref: "#/components/schemas/BaseClassWithDiscriminator"
         - type: object
           properties:
             seatType:

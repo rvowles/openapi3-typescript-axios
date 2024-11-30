@@ -48,12 +48,11 @@ import { {{{x-ts-all-models}}} } from './';
 {{#additionalPropertiesType}}
   private static otherProperties = [{{#vars}}'{{{name}}}', {{/vars}}];
 {{/additionalPropertiesType}}
-{{#exposeTransformers}}public {{/exposeTransformers}}static toJson(__val: {{classname}}): any {
+{{#exposeTransformers}}public {{/exposeTransformers}}static toJson(__val: {{classname}}, __data: any = {}): any {
 {{#isEnum}}
     return __val?.toString();
 {{/isEnum}}
 {{^isEnum}}
-    const __data: any = {};
     {{>enhancedModelInnerToJson}}
     return __data;
 {{/isEnum}}
@@ -63,7 +62,7 @@ import { {{{x-ts-all-models}}} } from './';
 {{#exposeTransformers}}public {{/exposeTransformers}} static fromJsonAsAny(__val: any): any {
     const __init: any = {};
     {{>enhancedModelInnerFromJson}}
-    
+
     {{>enhancedModelInnerFromJsonProps}}
     {{#additionalPropertiesType}}
     for(let prop in __val) {

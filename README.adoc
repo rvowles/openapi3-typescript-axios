@@ -2,6 +2,8 @@
 
 NOTE: Feedback in terms of issues appreciated! 
 
+== Introduction
+
 This is intended to be submitted back to the OpenAPI Generator crew because there are a number of tickets
 raised around its:
 
@@ -24,8 +26,10 @@ types. It needs more exhaustive testing around:
 - date and date-times
 - additionalProperty types (i.e. Record types)
 
-It needs to:
+== Releases
 
+ * 2.1 - swaps to 7.x of the OpenAPI generator. Updates the way that serialization happens for inheritance
+as well.
 
 it might:
 

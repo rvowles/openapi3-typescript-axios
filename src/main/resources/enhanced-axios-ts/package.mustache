@@ -18,11 +18,11 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "axios": "^0.19.2"
+    "axios": "{{{package-axios-version}}}"
   },
   "devDependencies": {
-    "@types/node": "^12.11.5",
-    "typescript": "^3.6.4"
+    "@types/node": "{{{package-types-node-version}}}",
+    "typescript": "{{{package-typescript-version}}}"
   }{{#npmRepository}},{{/npmRepository}}
 {{#npmRepository}}
   "publishConfig": {
