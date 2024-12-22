@@ -59,18 +59,8 @@ import { {{{x-ts-all-models}}} } from './';
   }
 
 {{^isEnum}}
-{{#exposeTransformers}}public {{/exposeTransformers}} static fromJsonAsAny(__val: any): any {
-    const __init: any = {};
+{{#exposeTransformers}}public {{/exposeTransformers}} static fromJsonAsAny(__val: any, __init: any = {}): any {
     {{>enhancedModelInnerFromJson}}
-
-    {{>enhancedModelInnerFromJsonProps}}
-    {{#additionalPropertiesType}}
-    for(let prop in __val) {
-      if ({{classname}}TypeTransformer.otherProperties.indexOf(prop) === -1 && __val.hasOwnProperty(prop)) {
-        __init[prop] = {{#vendorExtensions.x-ts-optimize}}__val[prop];{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(__val[prop], '{{{additionalPropertiesType}}}');{{/vendorExtensions.x-ts-optimize}}
-      }
-    }
-    {{/additionalPropertiesType}}
 
     return __init;
 }
@@ -116,6 +106,7 @@ export declare type EncoderFunc = (type: string, value: any) => any;
 export const serializers: Record<string, EncoderFunc> = {
   'string': _baseEncoder,
   'String': _baseEncoder,
+  'password': _baseEncoder,
   'email': _baseEncoder,
   'uuid': _baseEncoder,
   'int': _baseEncoder,
