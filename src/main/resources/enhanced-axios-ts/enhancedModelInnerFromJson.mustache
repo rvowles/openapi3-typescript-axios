@@ -5,21 +5,25 @@
 
 {{#vars}}
   {{^isInherited}}
-    if (__val.{{{name}}} !== null && __val.{{{name}}} !== undefined) {
+    {{#isNullable}}
+      if (__val['{{{baseName}}}'] !== null && __val['{{{baseName}}}'] !== undefined) {
+    {{/isNullable}}
     {{#vendorExtensions.x-ts-additional-props}}
       const __p: Record<string,{{{vendorExtensions.x-property-ref}}}> = {};
       const __keys = Object.keys(__val.{{{name}}}) as Array<{{{vendorExtensions.x-property-ref}}}>;
       for(let __prop of __keys) {
-      if (__val.{{{name}}}.hasOwnProperty(__prop)) {
-      __p[{{#isMap}}ObjectSerializer.deserialize({{/isMap}}__prop{{#isMap}}, '{{vendorExtensions.x-property-ref}}'){{/isMap}}] = {{#vendorExtensions.x-ts-optimize}}__val.{{{name}}}[__prop]{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(__val.{{{name}}}[__prop], '{{{vendorExtensions.x-ts-additional-props}}}'){{/vendorExtensions.x-ts-optimize}};
+      if (__val.{{{BaseName}}}.hasOwnProperty(__prop)) {
+      __p[{{#isMap}}ObjectSerializer.deserialize({{/isMap}}__prop{{#isMap}}, '{{vendorExtensions.x-property-ref}}'){{/isMap}}] = {{#vendorExtensions.x-ts-optimize}}__val.{{{baseName}}}[__prop]{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(__val.{{{baseName}}}[__prop], '{{{vendorExtensions.x-ts-additional-props}}}'){{/vendorExtensions.x-ts-optimize}};
       }
-      __init['{{{baseName}}}'] = __p;
+      __init['{{{name}}}'] = __p;
       }
     {{/vendorExtensions.x-ts-additional-props}}
     {{^vendorExtensions.x-ts-additional-props}}
-      __init['{{{baseName}}}'] = {{#vendorExtensions.x-ts-optimize}}__val.{{{name}}}{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(__val.{{{name}}}, '{{{vendorExtensions.x-ts-deserialize-type}}}'){{/vendorExtensions.x-ts-optimize}};
+      __init['{{{name}}}'] = {{#vendorExtensions.x-ts-optimize}}__val['{{{baseName}}}']{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.deserialize(__val.{{{baseName}}}, '{{{vendorExtensions.x-ts-deserialize-type}}}'){{/vendorExtensions.x-ts-optimize}};
     {{/vendorExtensions.x-ts-additional-props}}
-    }
+    {{#isNullable}}
+      }
+    {{/isNullable}}
   {{/isInherited}}
 {{/vars}}
 {{#additionalPropertiesType}}

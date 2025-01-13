@@ -28,6 +28,7 @@ types. It needs more exhaustive testing around:
 
 == Releases
 
+ * 2.2 - fixes bug where names of fields don't match the names of the ts fields (e.g. access_code vs accessCode) and nullability.
  * 2.1 - swaps to 7.x of the OpenAPI generator. Updates the way that serialization happens for inheritance
 as well.
 
