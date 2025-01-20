@@ -9,6 +9,7 @@
       if (__val.{{{name}}} !== null && __val.{{{name}}} !== undefined) {
     {{/isNullable}}
     {{#vendorExtensions.x-ts-additional-props}}
+      {
       const __p: any = {};
       const __keys = Object.keys(__val.{{{name}}}) as Array<{{{vendorExtensions.x-property-ref}}}>;
       for(let __prop of __keys) {
@@ -16,6 +17,7 @@
       __p[{{#isMap}}ObjectSerializer.serialize({{/isMap}}__prop{{#isMap}}, '{{vendorExtensions.x-property-ref}}'){{/isMap}}] = {{#vendorExtensions.x-ts-optimize}}__val.{{{name}}}[__prop]{{/vendorExtensions.x-ts-optimize}}{{^vendorExtensions.x-ts-optimize}}ObjectSerializer.serialize(__val.{{{name}}}[__prop], '{{{vendorExtensions.x-ts-additional-props}}}'){{/vendorExtensions.x-ts-optimize}};
       }
       __data['{{{baseName}}}'] = __p;
+      }
       }
     {{/vendorExtensions.x-ts-additional-props}}
     {{^vendorExtensions.x-ts-additional-props}}
