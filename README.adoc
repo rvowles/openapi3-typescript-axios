@@ -27,7 +27,7 @@ types. It needs more exhaustive testing around:
 - additionalProperty types (i.e. Record types)
 
 == Releases
-
+ * 2.4 - x-property-ref in an `additionalMap` showed up the imports were not being added to consistently. 
  * 2.3 - complex types with "additionalTypes" in them triggered a scope issue which is fixed in this version.
  * 2.2 - fixes bug where names of fields don't match the names of the ts fields (e.g. access_code vs accessCode) and nullability.
  * 2.1 - swaps to 7.x of the OpenAPI generator. Updates the way that serialization happens for inheritance

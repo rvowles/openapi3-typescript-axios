@@ -363,6 +363,8 @@ class EnhancedTypeScriptAxiosClientCodegen : AbstractTypeScriptClientCodegen() {
           )
         )
       }
+
+      info.imports = importStatements
     }
 
     if (objs.isNotEmpty()) {
