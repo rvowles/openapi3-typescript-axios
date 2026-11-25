@@ -116,6 +116,12 @@ class EnhancedTypeScriptAxiosClientCodegen : AbstractTypeScriptClientCodegen() {
     typeMapping["date"] = "Date"
     typeMapping["AnyType"] = "any"
 
+    // openapi-generator 6.0 stopped refactoring the inline members of an allOf into models of their own
+    // (Xxx_allOf) by default. modelAllOf.mustache only joins the names in the model's allOf, so without them
+    // an inline member's properties are silently lost: allOf [$ref: Base, {properties: {id}}] generates
+    // `type X = Base`. Restore the 5.x behaviour unless the project's inlineSchemaOptions say otherwise.
+    inlineSchemaOption.putIfAbsent("REFACTOR_ALLOF_INLINE_SCHEMAS", "true")
+
     cliOptions.add(
       CliOption(
         NPM_REPOSITORY,
@@ -325,10 +331,6 @@ class EnhancedTypeScriptAxiosClientCodegen : AbstractTypeScriptClientCodegen() {
       for (model in models!!) {
         val codegenModel = model.model
 
-        if (codegenModel.name == "BaseRolloutStrategy") {
-          println("blah")
-        }
-
         // lets fix the isInherited flag first
         codegenModel.interfaceModels?.forEach { inheritedModel ->
           if (fixInheritedFieldsAndMarkInherited(inheritedModel, codegenModel.vars)) {
@@ -351,6 +353,21 @@ class EnhancedTypeScriptAxiosClientCodegen : AbstractTypeScriptClientCodegen() {
 
       // now walk through all the imports and re-write them
       val importStatements = info.imports.toMutableList()
+
+      // A composed model is written as `type X = A & B` (allOf) or `type X = A | B` (oneOf), so it needs the
+      // types it names. openapi-generator 7 gives it the imports of its merged properties instead (an allOf
+      // model importing RolloutStrategyAttribute, but not BaseStrategy). A plain model then imports exactly the
+      // types it names (anything else is an unused import); the enhanced serializer may use its properties'
+      // types too, so it keeps them and gains the named ones.
+      models.firstOrNull { it.model.allOf.isNotEmpty() || it.model.oneOf.isNotEmpty() }?.model?.let { composed ->
+        val named = (if (composed.allOf.isNotEmpty()) composed.allOf else composed.oneOf)
+          .filter { it != composed.classname }
+        if (!additionalProperties.containsKey(USE_ENHANCED_SERIALIZER)) {
+          importStatements.clear()
+        }
+        val already = importStatements.mapNotNull { it["class"] }.toSet()
+        named.filter { it !in already }.forEach { importStatements.add(tsImport(it)) }
+      }
 
       importStatements.forEach { statement: Map<String, String> ->
         val iStatement = statement["import"]
