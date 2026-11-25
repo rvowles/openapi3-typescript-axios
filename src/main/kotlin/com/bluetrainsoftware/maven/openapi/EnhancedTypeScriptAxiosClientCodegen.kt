@@ -92,6 +92,7 @@ class EnhancedTypeScriptAxiosClientCodegen : AbstractTypeScriptClientCodegen() {
         }
       } else if (generateModels) {
         modelTemplateFiles["model.mustache"] = ".ts"
+        additionalProperties["importPrefix"] = "type"
       }
     }
 

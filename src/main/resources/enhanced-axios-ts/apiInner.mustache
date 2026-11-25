@@ -1,18 +1,16 @@
 {{#generateApis}}
 {{#withSeparateModelsAndApi}}
-/* tslint:disable */
-/* eslint-disable */
 {{>licenseInfo}}
 
 import * as globalImportUrl from 'url';
 import globalAxios, { AxiosPromise, AxiosInstance } from 'axios';
-import { Configuration } from '{{apiRelativeToRoot}}configuration';
+import {{importPrefix}} { Configuration } from '{{apiRelativeToRoot}}configuration';
 // Some imports not used depending on template conditions
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, RequestArgs, BaseAPI, RequiredError } from '{{apiRelativeToRoot}}base';
 {{#imports}}
 // @ts-ignore
-import { {{classname}} } from '{{apiModelRelativeToRoot}}{{{tsModelPackage}}}';
+import {{importPrefix}} { {{classname}} } from '{{apiModelRelativeToRoot}}{{{tsModelPackage}}}';
 {{/imports}}
 {{#useEnhancedSerializer}}
 // @ts-ignore

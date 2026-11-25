@@ -34,12 +34,12 @@
 	</scm>
 
   <properties>
-    <openapi-codegen-version>7.10.0</openapi-codegen-version>
-    <kotlin.version>1.9.0</kotlin.version>
+    <openapi-codegen-version>7.23.0</openapi-codegen-version>
+    <kotlin.version>2.3.0</kotlin.version>
   </properties>
 
   <prerequisites>
-    <maven>3.8</maven>
+    <maven>3.9</maven>
   </prerequisites>
   <dependencies>
     <dependency>
@@ -87,7 +87,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>33.7.1-jre</version>
+      <version>33.8.0-jre</version>
     </dependency>
     <dependency>
       <groupId>org.openapitools</groupId>
@@ -179,6 +179,18 @@
             </configuration>
           </execution>
         </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-maven-lombok</artifactId>
+            <version>${kotlin.version}</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <compilerPlugins>
+            <plugin>lombok</plugin>
+          </compilerPlugins>
+        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -241,7 +253,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.2.0</version>
+        <version>3.3.0</version>
         <configuration>
           <source>11</source>
           <detectJavaApiLink>false</detectJavaApiLink>
